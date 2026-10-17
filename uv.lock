@@ -39,7 +39,7 @@ wheels = [
 [[package]]
 name = "nasa-2026-qorvex-challenge-09"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "geopandas" },
 ]
