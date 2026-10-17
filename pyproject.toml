@@ -1,0 +1,7 @@
+[project]
+name = "nasa-2026-qorvex-challenge-09"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "geopandas>=1.2.0",
+]
