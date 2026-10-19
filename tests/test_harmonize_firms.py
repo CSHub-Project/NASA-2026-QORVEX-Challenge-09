@@ -1,10 +1,13 @@
+
 from datetime import datetime, timezone
+
+import pytest
 
 from qorvex.harmonize_firms import harmonize_record
 
 
-# Real MODIS record from our earlier FIRMS query.
-modis_record = {
+# Representative MODIS record from our earlier FIRMS query.
+MODIS_RECORD = {
     "latitude": "-37.6459",
     "longitude": "145.0045",
     "acq_date": "2024-01-03",
@@ -20,8 +23,8 @@ modis_record = {
     "version": "61.03",
 }
 
-# Real VIIRS record from our earlier FIRMS query.
-viirs_record = {
+# Representative VIIRS record from our earlier FIRMS query.
+VIIRS_RECORD = {
     "latitude": "-33.98823",
     "longitude": "145.50688",
     "acq_date": "2024-01-01",
@@ -38,66 +41,155 @@ viirs_record = {
 }
 
 
-modis_result = harmonize_record(modis_record, "MODIS_SP")
-viirs_result = harmonize_record(viirs_record, "VIIRS_SNPP_SP")
+def test_harmonize_modis_record():
+    result = harmonize_record(MODIS_RECORD, "MODIS_SP")
+
+    assert result["latitude"] == -37.6459
+    assert result["longitude"] == 145.0045
+    assert result["frp_mw"] == 7.5
+    assert result["confidence_raw"] == "37"
+    assert result["timestamp_utc"] == datetime(
+        2024, 1, 3, 4, 30, tzinfo=timezone.utc
+    )
+    assert result["viirs_bright_ti4"] is None
 
 
-print("MODIS harmonized record")
-print("-" * 40)
+def test_harmonize_viirs_record():
+    result = harmonize_record(VIIRS_RECORD, "VIIRS_SNPP_SP")
 
-for field, value in modis_result.items():
-    print(f"{field}: {value!r} ({type(value).__name__})")
+    assert result["latitude"] == -33.98823
+    assert result["longitude"] == 145.50688
+    assert result["frp_mw"] == 2.6
+    assert result["confidence_raw"] == "n"
+    assert result["timestamp_utc"] == datetime(
+        2024, 1, 1, 14, 43, tzinfo=timezone.utc
+    )
+    assert result["brightness_raw"] is None
 
 
-print("\nVIIRS harmonized record")
-print("-" * 40)
-
-for field, value in viirs_result.items():
-    print(f"{field}: {value!r} ({type(value).__name__})")
-
-
-# Basic checks of important properties.
-assert modis_result["latitude"] == -37.6459
-assert modis_result["frp_mw"] == 7.5
-assert modis_result["confidence_raw"] == "37"
-assert modis_result["timestamp_utc"] == datetime(
-    2024, 1, 3, 4, 30, tzinfo=timezone.utc
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("latitude", "-120"),
+        ("frp", "-5"),
+        ("acq_time", "2560"),
+    ],
+    ids=[
+        "invalid-latitude",
+        "negative-frp",
+        "invalid-acquisition-time",
+    ],
 )
+def test_invalid_modis_records_are_rejected(field, value):
+    record = MODIS_RECORD.copy()
+    record[field] = value
 
-assert viirs_result["latitude"] == -33.98823
-assert viirs_result["frp_mw"] == 2.6
-assert viirs_result["confidence_raw"] == "n"
-assert viirs_result["timestamp_utc"] == datetime(
-    2024, 1, 1, 14, 43, tzinfo=timezone.utc
+    with pytest.raises(ValueError):
+        harmonize_record(record, "MODIS_SP")
+
+
+def test_output_schema_is_stable():
+    result = harmonize_record(MODIS_RECORD, "MODIS_SP")
+
+    expected_fields = {
+        "timestamp_utc",
+        "latitude",
+        "longitude",
+        "sensor",
+        "satellite_raw",
+        "source_product",
+        "confidence_raw",
+        "frp_mw",
+        "brightness_raw",
+        "brightness_11um_raw",
+        "viirs_bright_ti4",
+        "viirs_bright_ti5",
+        "daynight_raw",
+        "source_type_raw",
+        "product_version",
+    }
+
+    assert set(result.keys()) == expected_fields
+
+
+def test_modis_metadata_is_preserved():
+    result = harmonize_record(MODIS_RECORD, "MODIS_SP")
+
+    assert result["sensor"] == "MODIS"
+    assert result["satellite_raw"] == "Aqua"
+    assert result["source_product"] == "MODIS_SP"
+    assert result["daynight_raw"] == "D"
+    assert result["source_type_raw"] == "2"
+    assert result["product_version"] == "61.03"
+
+
+def test_viirs_metadata_and_sensor_fields_are_preserved():
+    result = harmonize_record(VIIRS_RECORD, "VIIRS_SNPP_SP")
+
+    assert result["sensor"] == "VIIRS"
+    assert result["satellite_raw"] == "N"
+    assert result["source_product"] == "VIIRS_SNPP_SP"
+    assert result["brightness_raw"] is None
+    assert result["brightness_11um_raw"] is None
+    assert result["viirs_bright_ti4"] == 295.85
+    assert result["viirs_bright_ti5"] == 263.28
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("latitude", "nan"),
+        ("longitude", "inf"),
+        ("frp", "nan"),
+        ("brightness", "inf"),
+    ],
+    ids=[
+        "nan-latitude",
+        "infinite-longitude",
+        "nan-frp",
+        "infinite-brightness",
+    ],
 )
+def test_non_finite_numeric_values_are_rejected(field, value):
+    record = MODIS_RECORD.copy()
+    record[field] = value
 
-assert modis_result["viirs_bright_ti4"] is None
-assert viirs_result["brightness_raw"] is None
+    with pytest.raises(ValueError):
+        harmonize_record(record, "MODIS_SP")
 
-print("\nAll basic checks passed.")
 
-print("\nTesting invalid records")
-print("-" * 40)
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("latitude", "90.0001"),
+        ("longitude", "-180.0001"),
+    ],
+    ids=["latitude-above-maximum", "longitude-below-minimum"],
+)
+def test_coordinates_outside_valid_ranges_are_rejected(field, value):
+    record = MODIS_RECORD.copy()
+    record[field] = value
 
-# Each test starts from a copy of our valid MODIS example.
-invalid_cases = [
-    ("Invalid latitude", {"latitude": "-120"}),
-    ("Negative FRP", {"frp": "-5"}),
-    ("Invalid acquisition time", {"acq_time": "2560"}),
-]
+    with pytest.raises(ValueError):
+        harmonize_record(record, "MODIS_SP")
 
-for test_name, changes in invalid_cases:
-    bad_record = modis_record.copy()
-    bad_record.update(changes)
 
-    try:
-        harmonize_record(bad_record, "MODIS_SP")
-    except ValueError as error:
-        print(f"PASS — {test_name}: {error}")
-    else:
-        raise AssertionError(
-            f"FAIL — {test_name}: invalid record was accepted"
-        )
+def test_missing_optional_numeric_fields_become_none():
+    record = MODIS_RECORD.copy()
+    record["frp"] = ""
+    record["brightness"] = ""
+    record["bright_t31"] = None
 
-print("\nAll invalid-record tests passed.")
+    result = harmonize_record(record, "MODIS_SP")
 
+    assert result["frp_mw"] is None
+    assert result["brightness_raw"] is None
+    assert result["brightness_11um_raw"] is None
+
+
+def test_unsupported_instrument_is_rejected():
+    record = MODIS_RECORD.copy()
+    record["instrument"] = "UNKNOWN"
+
+    with pytest.raises(ValueError, match="Unsupported instrument"):
+        harmonize_record(record, "MODIS_SP")
