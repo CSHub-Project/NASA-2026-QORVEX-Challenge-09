@@ -6,30 +6,37 @@ from pathlib import Path
 import pandas as pd
 
 
-REQUIRED_COLUMNS = {
+BASE_COLUMNS = {
     "date",
     "any_anomaly",
     "total_detections",
     "anomaly_reasons",
 }
 
+PRODUCTS = {
+    "MODIS_SP": "is_anomaly_detections_MODIS_SP",
+    "VIIRS_NOAA20_SP": "is_anomaly_detections_VIIRS_NOAA20_SP",
+    "VIIRS_SNPP_SP": "is_anomaly_detections_VIIRS_SNPP_SP",
+}
+
 
 def _parse_boolean_column(values: pd.Series) -> pd.Series:
     """Convert common CSV boolean representations to actual booleans."""
     if pd.api.types.is_bool_dtype(values):
-        return values.fillna(False)
+        if values.isna().any():
+            raise ValueError("A boolean column contains missing values.")
+        return values.astype(bool)
 
     normalized = values.astype("string").str.strip().str.lower()
     valid_values = {"true", "false", "1", "0"}
 
-    unexpected = normalized.dropna()[~normalized.dropna().isin(valid_values)]
-    if not unexpected.empty:
-        raise ValueError(
-            "The any_anomaly column contains unrecognized boolean values."
-        )
+    unexpected = normalized.dropna()
+    unexpected = unexpected[~unexpected.isin(valid_values)]
 
-    if normalized.isna().any():
-        raise ValueError("The any_anomaly column contains missing values.")
+    if not unexpected.empty or normalized.isna().any():
+        raise ValueError(
+            "A boolean column contains missing or unrecognized values."
+        )
 
     return normalized.isin({"true", "1"})
 
@@ -37,17 +44,24 @@ def _parse_boolean_column(values: pd.Series) -> pd.Series:
 def detect_anomaly_episodes(
     anomaly_report: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Summarize consecutive days flagged by any_anomaly.
+    """Summarize strict episodes and their cross-product anomaly evidence.
 
-    A normal day or a missing calendar day ends an episode.
-    Episodes describe anomalous detection activity, not confirmed fires.
+    An episode is a consecutive run of days for which any_anomaly is True.
+    A normal or missing calendar day ends an episode.
+
+    Cross-product agreement is supporting evidence, not proof of a
+    confirmed wildfire or independent satellite confirmation.
     """
-    missing_columns = REQUIRED_COLUMNS - set(anomaly_report.columns)
+    required_columns = BASE_COLUMNS | set(PRODUCTS.values())
+    missing_columns = required_columns - set(anomaly_report.columns)
+
     if missing_columns:
         missing = ", ".join(sorted(missing_columns))
-        raise ValueError(f"Anomaly report is missing required columns: {missing}")
+        raise ValueError(f"Anomaly report is missing columns: {missing}")
 
-    daily = anomaly_report[list(REQUIRED_COLUMNS)].copy()
+    daily = anomaly_report[
+        list(BASE_COLUMNS | set(PRODUCTS.values()))
+    ].copy()
 
     daily["date"] = pd.to_datetime(
         daily["date"], errors="coerce", utc=True
@@ -56,13 +70,16 @@ def detect_anomaly_episodes(
     if daily["date"].isna().any():
         raise ValueError("The anomaly report contains invalid dates.")
 
-    # Compare calendar days, rather than timestamps or time zones.
     daily["date"] = daily["date"].dt.floor("D")
 
     if daily["date"].duplicated().any():
         raise ValueError("The anomaly report contains duplicate dates.")
 
     daily["any_anomaly"] = _parse_boolean_column(daily["any_anomaly"])
+
+    for flag_column in PRODUCTS.values():
+        daily[flag_column] = _parse_boolean_column(daily[flag_column])
+
     daily["total_detections"] = pd.to_numeric(
         daily["total_detections"], errors="coerce"
     )
@@ -80,6 +97,11 @@ def detect_anomaly_episodes(
     )
 
     daily = daily.sort_values("date").reset_index(drop=True)
+
+    # Count how many sensor products flag each day.
+    product_flag_columns = list(PRODUCTS.values())
+    daily["product_flag_count"] = daily[product_flag_columns].sum(axis=1)
+    daily["multi_product_flag"] = daily["product_flag_count"] >= 2
 
     episodes = []
     current_days = []
@@ -99,32 +121,43 @@ def detect_anomaly_episodes(
                 if reason and reason not in reasons:
                     reasons.append(reason)
 
-        episode_number = len(episodes) + 1
+        duration = len(episode)
+        multi_product_days = int(episode["multi_product_flag"].sum())
 
-        episodes.append(
-            {
-                "episode_id": f"E{episode_number:03d}",
-                "start_date": episode["date"].min().strftime("%Y-%m-%d"),
-                "end_date": episode["date"].max().strftime("%Y-%m-%d"),
-                "duration_days": len(episode),
-                "total_detections": int(
-                    episode["total_detections"].sum()
-                ),
-                "peak_daily_detections": int(
-                    peak_row["total_detections"]
-                ),
-                "peak_date": peak_row["date"].strftime("%Y-%m-%d"),
-                "anomaly_reasons": "; ".join(reasons),
-            }
-        )
+        record = {
+            "episode_id": f"E{len(episodes) + 1:03d}",
+            "start_date": episode["date"].min().strftime("%Y-%m-%d"),
+            "end_date": episode["date"].max().strftime("%Y-%m-%d"),
+            "duration_days": duration,
+            "total_detections": int(episode["total_detections"].sum()),
+            "peak_daily_detections": int(
+                peak_row["total_detections"]
+            ),
+            "peak_date": peak_row["date"].strftime("%Y-%m-%d"),
+            "overall_anomaly_days": int(episode["any_anomaly"].sum()),
+            "multi_product_anomaly_days": multi_product_days,
+            "multi_product_support_pct": round(
+                100 * multi_product_days / duration, 2
+            ),
+            "anomaly_reasons": "; ".join(reasons),
+        }
 
+        for product, flag_column in PRODUCTS.items():
+            output_column = {
+                "MODIS_SP": "modis_anomaly_days",
+                "VIIRS_NOAA20_SP": "viirs_noaa20_anomaly_days",
+                "VIIRS_SNPP_SP": "viirs_snpp_anomaly_days",
+            }[product]
+
+            record[output_column] = int(episode[flag_column].sum())
+
+        episodes.append(record)
         current_days.clear()
 
     previous_date = None
 
     for row in daily.to_dict(orient="records"):
         current_date = row["date"]
-
         consecutive = (
             previous_date is not None
             and (current_date - previous_date).days == 1
@@ -150,6 +183,12 @@ def detect_anomaly_episodes(
         "total_detections",
         "peak_daily_detections",
         "peak_date",
+        "overall_anomaly_days",
+        "modis_anomaly_days",
+        "viirs_noaa20_anomaly_days",
+        "viirs_snpp_anomaly_days",
+        "multi_product_anomaly_days",
+        "multi_product_support_pct",
         "anomaly_reasons",
     ]
 
