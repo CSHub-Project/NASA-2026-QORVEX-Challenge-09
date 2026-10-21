@@ -1,5 +1,5 @@
 
-"""Interactive geographic explorer for QORVEX fire detections."""
+"""Interactive geographic and density explorer for QORVEX."""
 
 import os
 from pathlib import Path
@@ -26,6 +26,14 @@ PRODUCT_COLORS = {
     "VIIRS_SNPP_SP": [30, 170, 110, 190],
 }
 
+HEATMAP_COLORS = [
+    [65, 182, 196, 0],
+    [127, 205, 187, 100],
+    [255, 255, 120, 150],
+    [253, 141, 60, 200],
+    [189, 0, 38, 230],
+]
+
 
 st.set_page_config(
     page_title="QORVEX | Geographic Explorer",
@@ -36,7 +44,7 @@ st.set_page_config(
 
 @st.cache_data
 def load_detections(path: str) -> pd.DataFrame:
-    """Load and validate the filtered detection dataset."""
+    """Load and validate filtered satellite detections."""
     frame = pd.read_csv(path)
 
     required = {
@@ -76,11 +84,11 @@ def load_detections(path: str) -> pd.DataFrame:
         .map(PRODUCT_LABELS)
         .fillna(frame["source_product"])
     )
-
     frame["color"] = frame["source_product"].map(
         PRODUCT_COLORS
     ).apply(
-        lambda color: color if isinstance(color, list)
+        lambda value: value
+        if isinstance(value, list)
         else [120, 120, 120, 190]
     )
 
@@ -89,18 +97,18 @@ def load_detections(path: str) -> pd.DataFrame:
 
 @st.cache_data
 def load_boundary(path: str) -> dict:
-    """Load the Victoria boundary and return GeoJSON for PyDeck."""
+    """Load the Victoria boundary as GeoJSON."""
     boundary = gpd.read_file(path)
 
     if boundary.empty:
-        raise ValueError("The Victoria boundary file contains no features.")
+        raise ValueError("The Victoria boundary file is empty.")
 
     if boundary.crs is None:
         raise ValueError("The Victoria boundary has no declared CRS.")
 
     boundary = boundary.to_crs("EPSG:4326")
 
-    # Exclude the sea feature while retaining mainland and islands.
+    # Keep mainland and island land features, excluding the sea feature.
     if "FEATURE_TY" in boundary.columns:
         boundary = boundary[
             boundary["FEATURE_TY"].astype(str).str.lower() != "sea"
@@ -113,7 +121,6 @@ def load_boundary(path: str) -> dict:
     if boundary.empty:
         raise ValueError("No usable land geometries remain in the boundary.")
 
-    # PyDeck's GeoJsonLayer accepts a GeoJSON feature collection.
     return boundary.__geo_interface__
 
 
@@ -124,19 +131,13 @@ st.caption(
 )
 
 missing_files = [
-    path
-    for path in [FIRE_FILE, BOUNDARY_FILE]
-    if not path.is_file()
+    path for path in [FIRE_FILE, BOUNDARY_FILE] if not path.is_file()
 ]
 
 if missing_files:
-    st.error("Required geographic data files are missing:")
+    st.error("Required geographic data files are missing.")
     for path in missing_files:
         st.code(str(path))
-    st.info(
-        "Check QORVEX_DATA_DIR and ensure the filtered detections "
-        "and Victoria boundary files are present."
-    )
     st.stop()
 
 try:
@@ -151,7 +152,7 @@ if detections.empty:
     st.stop()
 
 
-# Sidebar filters
+# Sidebar controls
 st.sidebar.header("Map filters")
 
 minimum_date = detections["date"].min()
@@ -187,12 +188,31 @@ selected_products = st.sidebar.multiselect(
     format_func=lambda product: PRODUCT_LABELS[product],
 )
 
+map_mode = st.sidebar.radio(
+    "Map visualization",
+    options=[
+        "Individual detections",
+        "Density heatmap",
+        "Aggregated hexagonal grid",
+    ],
+    index=0,
+    help=(
+        "The heatmap emphasizes spatial concentration. The hexagonal grid "
+        "aggregates detection records into spatial cells."
+    ),
+)
+
+show_boundary = st.sidebar.checkbox(
+    "Show Victoria boundary",
+    value=True,
+)
+
 show_all_points = st.sidebar.checkbox(
-    "Show every detection",
+    "Show every detection in point mode",
     value=True,
     help=(
-        "Disable this option to display a random sample when many "
-        "detections are selected. Summary metrics still use all records."
+        "Only applies to individual-detection mode. Disable it to sample "
+        "points when rendering a large number of records."
     ),
 )
 
@@ -202,12 +222,25 @@ maximum_map_points = st.sidebar.slider(
     max_value=50000,
     value=20000,
     step=1000,
-    disabled=show_all_points,
+    disabled=show_all_points or map_mode != "Individual detections",
 )
 
-show_boundary = st.sidebar.checkbox(
-    "Show Victoria boundary",
-    value=True,
+heatmap_radius = st.sidebar.slider(
+    "Heatmap radius (pixels)",
+    min_value=10,
+    max_value=60,
+    value=30,
+    step=5,
+    disabled=map_mode != "Density heatmap",
+)
+
+hexagon_radius = st.sidebar.slider(
+    "Hexagon radius (metres)",
+    min_value=1000,
+    max_value=20000,
+    value=5000,
+    step=1000,
+    disabled=map_mode != "Aggregated hexagonal grid",
 )
 
 filtered = detections[
@@ -220,37 +253,39 @@ if filtered.empty:
     st.stop()
 
 
-# Summary metrics
+# Summary metrics always describe the full filtered dataset.
 col1, col2, col3 = st.columns(3)
 col1.metric("Detection records", f"{len(filtered):,}")
 col2.metric("Satellite products", filtered["source_product"].nunique())
 col3.metric("Dates represented", f"{filtered['date'].nunique():,}")
 
 st.caption(
-    "Each point represents a satellite detection record, not necessarily "
-    "a unique fire. Points may overlap geographically."
+    "Counts refer to satellite detection records, not unique fires "
+    "or burned area."
 )
 
 
-# Limit rendering workload if requested.
-if show_all_points or len(filtered) <= maximum_map_points:
-    map_data = filtered.copy()
-    sampling_note = f"Displaying all {len(map_data):,} matching records."
-else:
+# Point rendering can be sampled, but density and grid modes use all
+# filtered records so their spatial aggregation is not sample-dependent.
+if (
+    map_mode == "Individual detections"
+    and not show_all_points
+    and len(filtered) > maximum_map_points
+):
     map_data = filtered.sample(
         n=maximum_map_points,
         random_state=42,
     ).copy()
-    sampling_note = (
-        f"Displaying a reproducible random sample of "
-        f"{len(map_data):,} of {len(filtered):,} matching records. "
-        "Metrics still use all matching records."
+    st.caption(
+        f"Showing {len(map_data):,} sampled points out of "
+        f"{len(filtered):,} matching records. Summary metrics use all records."
     )
+else:
+    map_data = filtered.copy()
+    st.caption(f"Map input: {len(map_data):,} matching detection records.")
 
-st.caption(sampling_note)
 
-
-# Prepare tooltip fields.
+# Tooltips for the individual point layer.
 map_data["timestamp_display"] = map_data[
     "timestamp_utc"
 ].dt.strftime("%Y-%m-%d %H:%M UTC")
@@ -280,6 +315,8 @@ tooltip = {
     },
 }
 
+
+# Map layers
 layers = []
 
 if show_boundary:
@@ -297,25 +334,64 @@ if show_boundary:
         )
     )
 
-layers.append(
-    pdk.Layer(
-        "ScatterplotLayer",
-        data=map_data,
-        get_position="[longitude, latitude]",
-        get_fill_color="color",
-        get_line_color=[255, 255, 255, 100],
-        get_radius=800,
-        radius_min_pixels=3,
-        radius_max_pixels=12,
-        pickable=True,
-        auto_highlight=True,
-        opacity=0.7,
+if map_mode == "Individual detections":
+    layers.append(
+        pdk.Layer(
+            "ScatterplotLayer",
+            data=map_data,
+            get_position="[longitude, latitude]",
+            get_fill_color="color",
+            get_line_color=[255, 255, 255, 100],
+            get_radius=800,
+            radius_min_pixels=3,
+            radius_max_pixels=12,
+            pickable=True,
+            auto_highlight=True,
+            opacity=0.7,
+        )
     )
-)
+
+elif map_mode == "Density heatmap":
+    layers.append(
+        pdk.Layer(
+            "HeatmapLayer",
+            data=filtered,
+            get_position="[longitude, latitude]",
+            get_weight=1,
+            radius_pixels=heatmap_radius,
+            intensity=1,
+            threshold=0.05,
+            color_range=HEATMAP_COLORS,
+            pickable=False,
+        )
+    )
+
+elif map_mode == "Aggregated hexagonal grid":
+    layers.append(
+        pdk.Layer(
+            "HexagonLayer",
+            data=filtered,
+            get_position="[longitude, latitude]",
+            radius=hexagon_radius,
+            elevation_scale=0,
+            extruded=False,
+            coverage=0.85,
+            color_range=[
+                [255, 237, 160],
+                [254, 178, 76],
+                [253, 141, 60],
+                [240, 59, 32],
+                [189, 0, 38],
+            ],
+            opacity=0.8,
+            pickable=True,
+            auto_highlight=True,
+        )
+    )
 
 view_state = pdk.ViewState(
-    latitude=float(map_data["latitude"].median()),
-    longitude=float(map_data["longitude"].median()),
+    latitude=float(filtered["latitude"].median()),
+    longitude=float(filtered["longitude"].median()),
     zoom=6,
     pitch=0,
     bearing=0,
@@ -324,15 +400,32 @@ view_state = pdk.ViewState(
 deck = pdk.Deck(
     layers=layers,
     initial_view_state=view_state,
-    tooltip=tooltip,
+    tooltip=tooltip if map_mode == "Individual detections" else True,
     map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
 )
 
 st.subheader("Detection locations")
+
+if map_mode == "Individual detections":
+    st.caption(
+        "Point colors identify the satellite product. Overlapping points "
+        "may represent repeated or coincident detections."
+    )
+elif map_mode == "Density heatmap":
+    st.caption(
+        "Brighter areas indicate greater local concentration of detection "
+        "records. The result depends on the selected radius and zoom level."
+    )
+else:
+    st.caption(
+        "Hexagonal cells aggregate the number of input detection records "
+        "within each spatial cell. Cell counts are not counts of unique fires."
+    )
+
 st.pydeck_chart(deck, use_container_width=True)
 
 
-# Product-level summary
+# Product summary uses all filtered records.
 st.subheader("Detection records by product")
 
 product_summary = (
