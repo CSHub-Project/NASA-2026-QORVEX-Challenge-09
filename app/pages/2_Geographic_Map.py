@@ -1,5 +1,5 @@
 
-"""Interactive geographic and density explorer for QORVEX."""
+"""QORVEX geographic explorer with anomaly-episode selection."""
 
 import os
 from pathlib import Path
@@ -11,8 +11,11 @@ import streamlit as st
 
 
 DATA_DIR = Path(os.getenv("QORVEX_DATA_DIR", r"C:\Users\Asus\data"))
+ACTIVITY_DIR = DATA_DIR / "activity_calendar"
+
 FIRE_FILE = DATA_DIR / "victoria_fires_2024.csv"
 BOUNDARY_FILE = DATA_DIR / "boundaries" / "victoria_boundary.geojson"
+EPISODE_FILE = ACTIVITY_DIR / "victoria_anomaly_episodes_2024.csv"
 
 PRODUCT_LABELS = {
     "MODIS_SP": "MODIS",
@@ -44,7 +47,7 @@ st.set_page_config(
 
 @st.cache_data
 def load_detections(path: str) -> pd.DataFrame:
-    """Load and validate filtered satellite detections."""
+    """Load and validate the filtered satellite detections."""
     frame = pd.read_csv(path)
 
     required = {
@@ -97,7 +100,7 @@ def load_detections(path: str) -> pd.DataFrame:
 
 @st.cache_data
 def load_boundary(path: str) -> dict:
-    """Load the Victoria boundary as GeoJSON."""
+    """Load the Victoria land boundary as GeoJSON."""
     boundary = gpd.read_file(path)
 
     if boundary.empty:
@@ -108,7 +111,6 @@ def load_boundary(path: str) -> dict:
 
     boundary = boundary.to_crs("EPSG:4326")
 
-    # Keep mainland and island land features, excluding the sea feature.
     if "FEATURE_TY" in boundary.columns:
         boundary = boundary[
             boundary["FEATURE_TY"].astype(str).str.lower() != "sea"
@@ -124,25 +126,94 @@ def load_boundary(path: str) -> dict:
     return boundary.__geo_interface__
 
 
+@st.cache_data
+def load_episodes(path: str) -> pd.DataFrame:
+    """Load and validate the anomaly-episode report."""
+    episodes = pd.read_csv(path)
+
+    required = {
+        "episode_id",
+        "start_date",
+        "end_date",
+        "duration_days",
+        "total_detections",
+        "peak_daily_detections",
+        "peak_date",
+        "overall_anomaly_days",
+        "modis_anomaly_days",
+        "viirs_noaa20_anomaly_days",
+        "viirs_snpp_anomaly_days",
+        "multi_product_anomaly_days",
+        "multi_product_support_pct",
+        "anomaly_reasons",
+    }
+
+    missing = required - set(episodes.columns)
+    if missing:
+        raise ValueError(
+            f"The episode report is missing columns: {sorted(missing)}"
+        )
+
+    if episodes["episode_id"].duplicated().any():
+        raise ValueError("The episode report contains duplicate episode IDs.")
+
+    for column in ["start_date", "end_date", "peak_date"]:
+        episodes[column] = pd.to_datetime(
+            episodes[column], errors="coerce"
+        )
+
+    if episodes[["start_date", "end_date", "peak_date"]].isna().any().any():
+        raise ValueError("The episode report contains invalid dates.")
+
+    if (episodes["start_date"] > episodes["end_date"]).any():
+        raise ValueError("An episode starts after its end date.")
+
+    numeric_columns = [
+        "duration_days",
+        "total_detections",
+        "peak_daily_detections",
+        "overall_anomaly_days",
+        "modis_anomaly_days",
+        "viirs_noaa20_anomaly_days",
+        "viirs_snpp_anomaly_days",
+        "multi_product_anomaly_days",
+        "multi_product_support_pct",
+    ]
+
+    for column in numeric_columns:
+        episodes[column] = pd.to_numeric(
+            episodes[column], errors="coerce"
+        )
+
+    if episodes[numeric_columns].isna().any().any():
+        raise ValueError("The episode report contains invalid numeric values.")
+
+    return episodes.sort_values("start_date").reset_index(drop=True)
+
+
 st.title("🌏 QORVEX — Geographic Explorer")
 st.caption(
-    "Explore harmonized MODIS and VIIRS active-fire detections "
-    "within Victoria during 2024."
+    "Explore harmonized MODIS and VIIRS active-fire detections, "
+    "including the locations observed during anomaly episodes."
 )
 
-missing_files = [
-    path for path in [FIRE_FILE, BOUNDARY_FILE] if not path.is_file()
-]
+required_files = [FIRE_FILE, BOUNDARY_FILE, EPISODE_FILE]
+missing_files = [path for path in required_files if not path.is_file()]
 
 if missing_files:
-    st.error("Required geographic data files are missing.")
+    st.error("Required data files are missing:")
     for path in missing_files:
         st.code(str(path))
+    st.info(
+        "Check QORVEX_DATA_DIR and ensure the filtered detections, "
+        "Victoria boundary, and anomaly-episode report are available."
+    )
     st.stop()
 
 try:
     detections = load_detections(str(FIRE_FILE))
     boundary_geojson = load_boundary(str(BOUNDARY_FILE))
+    episodes = load_episodes(str(EPISODE_FILE))
 except (ValueError, OSError, ImportError) as error:
     st.error(f"Could not load geographic data: {error}")
     st.stop()
@@ -151,29 +222,70 @@ if detections.empty:
     st.warning("No valid detection records are available.")
     st.stop()
 
+if episodes.empty:
+    st.warning("The anomaly-episode report contains no episodes.")
+    st.stop()
+
 
 # Sidebar controls
-st.sidebar.header("Map filters")
+st.sidebar.header("Explore detections")
 
-minimum_date = detections["date"].min()
-maximum_date = detections["date"].max()
-
-date_range = st.sidebar.date_input(
-    "Detection date range",
-    value=(minimum_date, maximum_date),
-    min_value=minimum_date,
-    max_value=maximum_date,
+time_mode = st.sidebar.radio(
+    "Time selection",
+    options=["All dates", "Anomaly episode"],
+    index=0,
 )
 
-if not isinstance(date_range, (tuple, list)) or len(date_range) != 2:
-    st.info("Select both a start date and an end date.")
-    st.stop()
+selected_episode = None
 
-start_date, end_date = date_range
+if time_mode == "Anomaly episode":
+    episode_options = episodes["episode_id"].tolist()
 
-if start_date > end_date:
-    st.error("The start date must not be later than the end date.")
-    st.stop()
+    selected_episode_id = st.sidebar.selectbox(
+        "Select anomaly episode",
+        options=episode_options,
+        index=0,
+        format_func=lambda episode_id: (
+            lambda row: (
+                f"{row['episode_id']} · "
+                f"{row['start_date']:%d %b}–"
+                f"{row['end_date']:%d %b %Y} · "
+                f"{int(row['duration_days'])} day(s)"
+            )
+        )(episodes.loc[episodes["episode_id"] == episode_id].iloc[0]),
+    )
+
+    selected_episode = episodes.loc[
+        episodes["episode_id"] == selected_episode_id
+    ].iloc[0]
+
+    effective_start = selected_episode["start_date"].date()
+    effective_end = selected_episode["end_date"].date()
+
+    st.sidebar.caption(
+        "The selected episode determines the date range. "
+        "The date picker is not used in episode mode."
+    )
+else:
+    minimum_date = detections["date"].min()
+    maximum_date = detections["date"].max()
+
+    date_range = st.sidebar.date_input(
+        "Detection date range",
+        value=(minimum_date, maximum_date),
+        min_value=minimum_date,
+        max_value=maximum_date,
+    )
+
+    if not isinstance(date_range, (tuple, list)) or len(date_range) != 2:
+        st.info("Select both a start date and an end date.")
+        st.stop()
+
+    effective_start, effective_end = date_range
+
+    if effective_start > effective_end:
+        st.error("The start date must not be later than the end date.")
+        st.stop()
 
 available_products = [
     product
@@ -196,10 +308,6 @@ map_mode = st.sidebar.radio(
         "Aggregated hexagonal grid",
     ],
     index=0,
-    help=(
-        "The heatmap emphasizes spatial concentration. The hexagonal grid "
-        "aggregates detection records into spatial cells."
-    ),
 )
 
 show_boundary = st.sidebar.checkbox(
@@ -210,10 +318,7 @@ show_boundary = st.sidebar.checkbox(
 show_all_points = st.sidebar.checkbox(
     "Show every detection in point mode",
     value=True,
-    help=(
-        "Only applies to individual-detection mode. Disable it to sample "
-        "points when rendering a large number of records."
-    ),
+    help="Only applies to individual-detection mode.",
 )
 
 maximum_map_points = st.sidebar.slider(
@@ -243,30 +348,108 @@ hexagon_radius = st.sidebar.slider(
     disabled=map_mode != "Aggregated hexagonal grid",
 )
 
+
+# Apply date and product filters to the full detection dataset.
 filtered = detections[
-    detections["date"].between(start_date, end_date)
+    detections["date"].between(effective_start, effective_end)
     & detections["source_product"].isin(selected_products)
 ].copy()
 
 if filtered.empty:
-    st.warning("No detections match the selected filters.")
+    st.warning(
+        "No detections match the selected time period and satellite products."
+    )
     st.stop()
 
 
-# Summary metrics always describe the full filtered dataset.
+# Episode metadata
+if selected_episode is not None:
+    st.subheader(f"Anomaly episode {selected_episode['episode_id']}")
+
+    st.write(
+        f"**Period:** {selected_episode['start_date']:%d %B %Y} – "
+        f"{selected_episode['end_date']:%d %B %Y}"
+    )
+
+    metric1, metric2, metric3, metric4 = st.columns(4)
+    metric1.metric(
+        "Episode duration",
+        f"{int(selected_episode['duration_days'])} day(s)",
+    )
+    metric2.metric(
+        "Episode report total",
+        f"{int(selected_episode['total_detections']):,}",
+    )
+    metric3.metric(
+        "Peak daily detections",
+        f"{int(selected_episode['peak_daily_detections']):,}",
+    )
+    metric4.metric(
+        "Multi-product support",
+        f"{selected_episode['multi_product_support_pct']:.1f}%",
+    )
+
+    st.write(
+        f"**Peak date:** {selected_episode['peak_date']:%d %B %Y}"
+    )
+    st.write(
+        f"**Anomaly reasons:** {selected_episode['anomaly_reasons']}"
+    )
+
+    evidence = pd.DataFrame(
+        [
+            {
+                "Satellite product": "MODIS",
+                "Anomaly days": int(selected_episode["modis_anomaly_days"]),
+            },
+            {
+                "Satellite product": "VIIRS NOAA-20",
+                "Anomaly days": int(
+                    selected_episode["viirs_noaa20_anomaly_days"]
+                ),
+            },
+            {
+                "Satellite product": "VIIRS Suomi-NPP",
+                "Anomaly days": int(
+                    selected_episode["viirs_snpp_anomaly_days"]
+                ),
+            },
+            {
+                "Satellite product": "Multiple products",
+                "Anomaly days": int(
+                    selected_episode["multi_product_anomaly_days"]
+                ),
+            },
+        ]
+    )
+
+    with st.expander("Inspect cross-sensor episode evidence"):
+        st.dataframe(evidence, hide_index=True, use_container_width=True)
+
+    st.caption(
+        "The episode report summarizes anomaly activity across the period. "
+        "The map below includes all matching detection records in that "
+        "date range, not only records from days or products that triggered "
+        "an anomaly flag."
+    )
+
+
+# Summary metrics describe the complete filtered dataset.
+st.subheader("Geographic overview")
+
 col1, col2, col3 = st.columns(3)
-col1.metric("Detection records", f"{len(filtered):,}")
+col1.metric("Matching detection records", f"{len(filtered):,}")
 col2.metric("Satellite products", filtered["source_product"].nunique())
 col3.metric("Dates represented", f"{filtered['date'].nunique():,}")
 
 st.caption(
-    "Counts refer to satellite detection records, not unique fires "
-    "or burned area."
+    f"Date range: {effective_start:%d %b %Y} – {effective_end:%d %b %Y}. "
+    "Detection records are not unique fires or burned area."
 )
 
 
-# Point rendering can be sampled, but density and grid modes use all
-# filtered records so their spatial aggregation is not sample-dependent.
+# Point mode can use a reproducible sample. Density and grid modes use
+# all records that match the active filters.
 if (
     map_mode == "Individual detections"
     and not show_all_points
@@ -277,15 +460,15 @@ if (
         random_state=42,
     ).copy()
     st.caption(
-        f"Showing {len(map_data):,} sampled points out of "
+        f"Displaying {len(map_data):,} sampled points out of "
         f"{len(filtered):,} matching records. Summary metrics use all records."
     )
 else:
     map_data = filtered.copy()
-    st.caption(f"Map input: {len(map_data):,} matching detection records.")
+    st.caption(f"Map input: {len(map_data):,} matching records.")
 
 
-# Tooltips for the individual point layer.
+# Point tooltip fields.
 map_data["timestamp_display"] = map_data[
     "timestamp_utc"
 ].dt.strftime("%Y-%m-%d %H:%M UTC")
@@ -316,7 +499,7 @@ tooltip = {
 }
 
 
-# Map layers
+# Construct the map.
 layers = []
 
 if show_boundary:
@@ -366,7 +549,7 @@ elif map_mode == "Density heatmap":
         )
     )
 
-elif map_mode == "Aggregated hexagonal grid":
+else:
     layers.append(
         pdk.Layer(
             "HexagonLayer",
@@ -414,18 +597,18 @@ if map_mode == "Individual detections":
 elif map_mode == "Density heatmap":
     st.caption(
         "Brighter areas indicate greater local concentration of detection "
-        "records. The result depends on the selected radius and zoom level."
+        "records. The result depends on radius and zoom level."
     )
 else:
     st.caption(
-        "Hexagonal cells aggregate the number of input detection records "
-        "within each spatial cell. Cell counts are not counts of unique fires."
+        "Hexagonal cells aggregate matching detection records into spatial "
+        "cells. Cell counts are not counts of unique fires."
     )
 
 st.pydeck_chart(deck, use_container_width=True)
 
 
-# Product summary uses all filtered records.
+# Product-level summary for the active date and product filters.
 st.subheader("Detection records by product")
 
 product_summary = (
@@ -474,6 +657,6 @@ with st.expander("Inspect matching detection records"):
 
 st.caption(
     "Active-fire detections indicate satellite-observed thermal anomalies. "
-    "They do not by themselves establish a unique fire, fire perimeter, "
-    "cause, or burned area."
+    "An anomaly episode is a period of unusual activity, not necessarily "
+    "one wildfire or a fire perimeter."
 )
