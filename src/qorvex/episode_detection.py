@@ -19,6 +19,18 @@ PRODUCTS = {
     "VIIRS_SNPP_SP": "is_anomaly_detections_VIIRS_SNPP_SP",
 }
 
+EVIDENCE_CATEGORIES = {
+    "overall_and_multiple_products": (
+        "Overall + multiple products"
+    ),
+    "overall_with_limited_product_support": (
+        "Overall + limited product support"
+    ),
+    "multiple_products_only": "Multiple products only",
+    "single_product_only": "Single product only",
+    "no_anomaly": "No anomaly",
+}
+
 
 def _parse_boolean_column(values: pd.Series) -> pd.Series:
     """Convert common CSV boolean representations to actual booleans."""
@@ -41,6 +53,26 @@ def _parse_boolean_column(values: pd.Series) -> pd.Series:
     return normalized.isin({"true", "1"})
 
 
+def _classify_daily_evidence(
+    overall_anomaly: bool,
+    product_flag_count: int,
+) -> str:
+    """Classify the pattern of daily anomaly flags, not fire severity."""
+    if overall_anomaly and product_flag_count >= 2:
+        return "overall_and_multiple_products"
+
+    if overall_anomaly:
+        return "overall_with_limited_product_support"
+
+    if product_flag_count >= 2:
+        return "multiple_products_only"
+
+    if product_flag_count == 1:
+        return "single_product_only"
+
+    return "no_anomaly"
+
+
 def detect_anomaly_episodes(
     anomaly_report: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -49,8 +81,9 @@ def detect_anomaly_episodes(
     An episode is a consecutive run of days for which any_anomaly is True.
     A normal or missing calendar day ends an episode.
 
-    Cross-product agreement is supporting evidence, not proof of a
-    confirmed wildfire or independent satellite confirmation.
+    Evidence categories summarize which anomaly flags were raised.
+    They are not fire-severity classifications or confirmation of a
+    wildfire. Cross-product agreement is supporting evidence only.
     """
     required_columns = BASE_COLUMNS | set(PRODUCTS.values())
     missing_columns = required_columns - set(anomaly_report.columns)
@@ -98,10 +131,20 @@ def detect_anomaly_episodes(
 
     daily = daily.sort_values("date").reset_index(drop=True)
 
-    # Count how many sensor products flag each day.
     product_flag_columns = list(PRODUCTS.values())
     daily["product_flag_count"] = daily[product_flag_columns].sum(axis=1)
     daily["multi_product_flag"] = daily["product_flag_count"] >= 2
+
+    daily["evidence_category"] = [
+        _classify_daily_evidence(
+            overall_anomaly=overall,
+            product_flag_count=int(product_count),
+        )
+        for overall, product_count in zip(
+            daily["any_anomaly"],
+            daily["product_flag_count"],
+        )
+    ]
 
     episodes = []
     current_days = []
@@ -151,6 +194,21 @@ def detect_anomaly_episodes(
 
             record[output_column] = int(episode[flag_column].sum())
 
+        # Count the daily evidence categories within this episode.
+        category_counts = episode["evidence_category"].value_counts()
+
+        for category in EVIDENCE_CATEGORIES:
+            record[f"{category}_days"] = int(
+                category_counts.get(category, 0)
+            )
+
+        # Keep all categories visible rather than forcing a mixed episode
+        # into a single potentially misleading label.
+        record["evidence_profile"] = "; ".join(
+            f"{EVIDENCE_CATEGORIES[category]}: {count}"
+            for category, count in category_counts.items()
+        )
+
         episodes.append(record)
         current_days.clear()
 
@@ -190,6 +248,8 @@ def detect_anomaly_episodes(
         "multi_product_anomaly_days",
         "multi_product_support_pct",
         "anomaly_reasons",
+        *[f"{category}_days" for category in EVIDENCE_CATEGORIES],
+        "evidence_profile",
     ]
 
     return pd.DataFrame(episodes, columns=columns)
