@@ -103,19 +103,56 @@ def generate_activity_calendar(
     return daily, monthly
 
 
+def _period_label(start_date: str, end_date: str) -> str:
+    """Return a compact label for a single year or multi-year range."""
+    start = pd.Timestamp(start_date)
+    end = pd.Timestamp(end_date)
+
+    if end < start:
+        raise ValueError("end_date must be on or after start_date.")
+
+    if start.year == end.year:
+        return str(start.year)
+
+    return f"{start.year}_{end.year}"
+
+
 def generate_calendar_from_csv(
     input_file: str | Path,
     output_directory: str | Path,
     *,
     start_date: str,
     end_date: str,
+    output_prefix: str = "victoria",
 ) -> tuple[Path, Path]:
-    """Read detections from CSV and write daily and monthly summaries."""
+    """Read detections from CSV and write daily and monthly summaries.
+
+    Args:
+        input_file: CSV containing harmonized detections.
+        output_directory: Directory in which to save the summaries.
+        start_date: First calendar date to include, in YYYY-MM-DD format.
+        end_date: Last calendar date to include, in YYYY-MM-DD format.
+        output_prefix: Dataset or region identifier used in output filenames.
+            Defaults to ``victoria`` for backward compatibility.
+
+    Returns:
+        Paths to the generated daily and monthly CSV files.
+    """
     input_path = Path(input_file)
     output_dir = Path(output_directory)
 
     if not input_path.is_file():
         raise FileNotFoundError(f"Input dataset not found: {input_path}")
+
+    prefix = output_prefix.strip().lower().replace(" ", "_")
+    if not prefix or any(
+        character in prefix for character in ("/", "\\", ":", "*", "?", '"', "<", ">", "|")
+    ):
+        raise ValueError(
+            "output_prefix must be a non-empty filename-safe identifier."
+        )
+
+    period = _period_label(start_date, end_date)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     detections = pd.read_csv(input_path)
@@ -126,8 +163,8 @@ def generate_calendar_from_csv(
         end_date=end_date,
     )
 
-    daily_path = output_dir / "victoria_daily_activity_2024.csv"
-    monthly_path = output_dir / "victoria_monthly_activity_2024.csv"
+    daily_path = output_dir / f"{prefix}_daily_activity_{period}.csv"
+    monthly_path = output_dir / f"{prefix}_monthly_activity_{period}.csv"
 
     daily.to_csv(daily_path, index=False)
     monthly.to_csv(monthly_path, index=False)
