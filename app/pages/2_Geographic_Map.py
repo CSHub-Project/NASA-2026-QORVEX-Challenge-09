@@ -1,29 +1,27 @@
 
-"""QORVEX geographic explorer with anomaly-episode selection."""
+"""QORVEX geographic explorer with selectable datasets and anomaly episodes."""
 
 import os
 from pathlib import Path
 
-import geopandas as gpd
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
 
 DATA_DIR = Path(os.getenv("QORVEX_DATA_DIR", r"C:\Users\Asus\data"))
-ACTIVITY_DIR = DATA_DIR / "activity_calendar"
-
-FIRE_FILE = DATA_DIR / "victoria_fires_2024.csv"
 BOUNDARY_FILE = DATA_DIR / "boundaries" / "victoria_boundary.geojson"
-EPISODE_FILE = ACTIVITY_DIR / "victoria_anomaly_episodes_2024.csv"
+EPISODE_FILE = (
+    DATA_DIR / "activity_calendar" / "victoria_anomaly_episodes_2024.csv"
+)
 
-PRODUCT_LABELS = {
+LABELS = {
     "MODIS_SP": "MODIS",
     "VIIRS_NOAA20_SP": "VIIRS NOAA-20",
     "VIIRS_SNPP_SP": "VIIRS Suomi-NPP",
 }
 
-PRODUCT_COLORS = {
+COLORS = {
     "MODIS_SP": [30, 120, 220, 190],
     "VIIRS_NOAA20_SP": [230, 90, 40, 190],
     "VIIRS_SNPP_SP": [30, 170, 110, 190],
@@ -46,89 +44,112 @@ st.set_page_config(
 
 
 @st.cache_data
+def discover_datasets(directory: str) -> list[str]:
+    """Discover harmonized datasets available in the data directory."""
+    root = Path(directory)
+    paths = set(root.glob("harmonized_fires*.csv"))
+    paths.update(root.glob("victoria_fires_2024.csv"))
+
+    return sorted(
+        (str(path.resolve()) for path in paths if path.is_file()),
+        key=lambda path: (
+            Path(path).name != "victoria_fires_2024.csv",
+            Path(path).name.lower(),
+        ),
+    )
+
+
+@st.cache_data
 def load_detections(path: str) -> pd.DataFrame:
-    """Load and validate the filtered satellite detections."""
-    frame = pd.read_csv(path)
+    """Load and validate harmonized detection records."""
+    df = pd.read_csv(path)
 
     required = {
         "latitude",
         "longitude",
         "timestamp_utc",
-        "sensor",
         "source_product",
     }
-    missing = required - set(frame.columns)
+    missing = required - set(df.columns)
 
     if missing:
-        raise ValueError(
-            f"The detection file is missing columns: {sorted(missing)}"
-        )
+        raise ValueError(f"Missing required columns: {sorted(missing)}")
 
-    frame["latitude"] = pd.to_numeric(
-        frame["latitude"], errors="coerce"
-    )
-    frame["longitude"] = pd.to_numeric(
-        frame["longitude"], errors="coerce"
-    )
-    frame["timestamp_utc"] = pd.to_datetime(
-        frame["timestamp_utc"], errors="coerce", utc=True
+    df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
+    df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
+    df["timestamp_utc"] = pd.to_datetime(
+        df["timestamp_utc"], errors="coerce", utc=True
     )
 
     valid = (
-        frame["latitude"].between(-90, 90)
-        & frame["longitude"].between(-180, 180)
-        & frame["timestamp_utc"].notna()
+        df["latitude"].between(-90, 90)
+        & df["longitude"].between(-180, 180)
+        & df["timestamp_utc"].notna()
     )
-    frame = frame.loc[valid].copy()
+    df = df.loc[valid].copy()
 
-    frame["date"] = frame["timestamp_utc"].dt.date
-    frame["product_label"] = (
-        frame["source_product"]
-        .map(PRODUCT_LABELS)
-        .fillna(frame["source_product"])
+    df["date"] = df["timestamp_utc"].dt.date
+    df["product_label"] = (
+        df["source_product"].map(LABELS).fillna(df["source_product"])
     )
-    frame["color"] = frame["source_product"].map(
-        PRODUCT_COLORS
-    ).apply(
+    df["color"] = df["source_product"].map(COLORS).apply(
         lambda value: value
         if isinstance(value, list)
         else [120, 120, 120, 190]
     )
 
-    return frame.reset_index(drop=True)
+    if "sensor" not in df.columns:
+        df["sensor"] = df["source_product"].astype(str).str.replace(
+            "_SP", "", regex=False
+        )
+
+    optional_columns = [
+        "confidence_raw",
+        "frp_mw",
+        "brightness_raw",
+        "brightness_11um_raw",
+        "viirs_bright_ti4",
+        "viirs_bright_ti5",
+        "daynight_raw",
+    ]
+
+    for column in optional_columns:
+        if column not in df.columns:
+            df[column] = ""
+
+    return df.reset_index(drop=True)
 
 
 @st.cache_data
 def load_boundary(path: str) -> dict:
-    """Load the Victoria land boundary as GeoJSON."""
-    boundary = gpd.read_file(path)
+    """Load the Victoria boundary and convert it to WGS84 GeoJSON."""
+    import geopandas as gpd
 
-    if boundary.empty:
-        raise ValueError("The Victoria boundary file is empty.")
+    frame = gpd.read_file(path)
 
-    if boundary.crs is None:
-        raise ValueError("The Victoria boundary has no declared CRS.")
+    if frame.empty or frame.crs is None:
+        raise ValueError("Boundary is empty or has no declared CRS.")
 
-    boundary = boundary.to_crs("EPSG:4326")
+    frame = frame.to_crs("EPSG:4326")
 
-    if "FEATURE_TY" in boundary.columns:
-        boundary = boundary[
-            boundary["FEATURE_TY"].astype(str).str.lower() != "sea"
+    if "FEATURE_TY" in frame.columns:
+        frame = frame[
+            frame["FEATURE_TY"].astype(str).str.lower() != "sea"
         ].copy()
 
-    boundary = boundary[
-        boundary.geometry.notna() & ~boundary.geometry.is_empty
+    frame = frame[
+        frame.geometry.notna() & ~frame.geometry.is_empty
     ].copy()
 
-    if boundary.empty:
-        raise ValueError("No usable land geometries remain in the boundary.")
+    if frame.empty:
+        raise ValueError("No usable land geometries remain in boundary.")
 
-    return boundary.__geo_interface__
+    return frame.__geo_interface__
 
 
 @st.cache_data
 def load_episodes(path: str) -> pd.DataFrame:
-    """Load and validate the anomaly-episode report."""
+    """Load and validate the Victoria anomaly-episode report."""
     episodes = pd.read_csv(path)
 
     required = {
@@ -191,60 +212,149 @@ def load_episodes(path: str) -> pd.DataFrame:
     return episodes.sort_values("start_date").reset_index(drop=True)
 
 
+# ---------------------------------------------------------------------------
+# Page header and dataset selection
+# ---------------------------------------------------------------------------
+
 st.title("🌏 QORVEX — Geographic Explorer")
 st.caption(
-    "Explore harmonized MODIS and VIIRS active-fire detections, "
-    "including the locations observed during anomaly episodes."
+    "Explore harmonized MODIS and VIIRS detections, spatial density, "
+    "geographic aggregation, and Victoria anomaly episodes."
 )
 
-required_files = [FIRE_FILE, BOUNDARY_FILE, EPISODE_FILE]
-missing_files = [path for path in required_files if not path.is_file()]
+datasets = discover_datasets(str(DATA_DIR))
 
-if missing_files:
-    st.error("Required data files are missing:")
-    for path in missing_files:
-        st.code(str(path))
-    st.info(
-        "Check QORVEX_DATA_DIR and ensure the filtered detections, "
-        "Victoria boundary, and anomaly-episode report are available."
+if not datasets:
+    st.error(
+        f"No harmonized CSV files found in {DATA_DIR}. "
+        "Set QORVEX_DATA_DIR or add harmonized_fires*.csv."
     )
     st.stop()
 
+default_dataset = next(
+    (
+        path
+        for path in datasets
+        if Path(path).name == "victoria_fires_2024.csv"
+    ),
+    datasets[0],
+)
+
+st.sidebar.header("Explore detections")
+
+selected_path = st.sidebar.selectbox(
+    "Harmonized dataset",
+    datasets,
+    index=datasets.index(default_dataset),
+    format_func=lambda path: Path(path).name,
+)
+
+is_victoria_dataset = (
+    Path(selected_path).name == "victoria_fires_2024.csv"
+)
+
+
+# ---------------------------------------------------------------------------
+# Geographic scope
+# ---------------------------------------------------------------------------
+
+scope = st.sidebar.radio(
+    "Geographic scope",
+    ["World", "Bounding box"],
+    horizontal=True,
+)
+
+if scope == "Bounding box":
+    with st.sidebar.expander("Bounding-box coordinates", expanded=True):
+        st.caption("West, south, east, north in decimal degrees.")
+
+        west = st.number_input(
+            "West longitude", -180.0, 180.0, 140.9, 0.1
+        )
+        south = st.number_input(
+            "South latitude", -90.0, 90.0, -39.2, 0.1
+        )
+        east = st.number_input(
+            "East longitude", -180.0, 180.0, 150.1, 0.1
+        )
+        north = st.number_input(
+            "North latitude", -90.0, 90.0, -33.9, 0.1
+        )
+
+    if west >= east or south >= north:
+        st.sidebar.error("Require west < east and south < north.")
+        st.stop()
+else:
+    west, south, east, north = -180.0, -90.0, 180.0, 90.0
+    st.sidebar.caption(
+        "World shows all records in the selected CSV; "
+        "it does not fetch additional global data."
+    )
+
+
+# ---------------------------------------------------------------------------
+# Load detections and apply geographic filtering
+# ---------------------------------------------------------------------------
+
 try:
-    detections = load_detections(str(FIRE_FILE))
-    boundary_geojson = load_boundary(str(BOUNDARY_FILE))
-    episodes = load_episodes(str(EPISODE_FILE))
-except (ValueError, OSError, ImportError) as error:
-    st.error(f"Could not load geographic data: {error}")
+    detections = load_detections(selected_path)
+except (OSError, ValueError, KeyError) as exc:
+    st.error(f"Could not load dataset: {exc}")
     st.stop()
 
 if detections.empty:
-    st.warning("No valid detection records are available.")
+    st.warning("No valid detections in this dataset.")
     st.stop()
 
-if episodes.empty:
-    st.warning("The anomaly-episode report contains no episodes.")
+scoped = detections.loc[
+    detections["longitude"].between(west, east)
+    & detections["latitude"].between(south, north)
+].copy()
+
+if scoped.empty:
+    st.warning("No detections match the geographic scope.")
     st.stop()
 
+minimum_date = scoped["date"].min()
+maximum_date = scoped["date"].max()
 
-# Sidebar controls
-st.sidebar.header("Explore detections")
 
-time_mode = st.sidebar.radio(
-    "Time selection",
-    options=["All dates", "Anomaly episode"],
-    index=0,
-)
+# ---------------------------------------------------------------------------
+# Optional anomaly-episode exploration
+# ---------------------------------------------------------------------------
+
+episodes = pd.DataFrame()
+episode_report_available = is_victoria_dataset and EPISODE_FILE.is_file()
+
+if episode_report_available:
+    try:
+        episodes = load_episodes(str(EPISODE_FILE))
+    except (OSError, ValueError, KeyError) as exc:
+        st.sidebar.warning(
+            f"Anomaly-episode report could not be loaded: {exc}"
+        )
+elif is_victoria_dataset:
+    st.sidebar.info(
+        "The Victoria anomaly-episode report was not found. "
+        "All-date exploration is still available."
+    )
 
 selected_episode = None
+time_mode = "All dates"
+
+if episode_report_available and not episodes.empty:
+    time_mode = st.sidebar.radio(
+        "Time selection",
+        ["All dates", "Anomaly episode"],
+        index=0,
+    )
 
 if time_mode == "Anomaly episode":
-    episode_options = episodes["episode_id"].tolist()
+    episode_ids = episodes["episode_id"].tolist()
 
     selected_episode_id = st.sidebar.selectbox(
         "Select anomaly episode",
-        options=episode_options,
-        index=0,
+        options=episode_ids,
         format_func=lambda episode_id: (
             lambda row: (
                 f"{row['episode_id']} · "
@@ -252,7 +362,11 @@ if time_mode == "Anomaly episode":
                 f"{row['end_date']:%d %b %Y} · "
                 f"{int(row['duration_days'])} day(s)"
             )
-        )(episodes.loc[episodes["episode_id"] == episode_id].iloc[0]),
+        )(
+            episodes.loc[
+                episodes["episode_id"] == episode_id
+            ].iloc[0]
+        ),
     )
 
     selected_episode = episodes.loc[
@@ -267,9 +381,6 @@ if time_mode == "Anomaly episode":
         "The date picker is not used in episode mode."
     )
 else:
-    minimum_date = detections["date"].min()
-    maximum_date = detections["date"].max()
-
     date_range = st.sidebar.date_input(
         "Detection date range",
         value=(minimum_date, maximum_date),
@@ -278,93 +389,111 @@ else:
     )
 
     if not isinstance(date_range, (tuple, list)) or len(date_range) != 2:
-        st.info("Select both a start date and an end date.")
+        st.info("Select both a start and an end date.")
         st.stop()
 
     effective_start, effective_end = date_range
 
     if effective_start > effective_end:
-        st.error("The start date must not be later than the end date.")
+        st.error("Start date must not be later than end date.")
         st.stop()
 
-available_products = [
-    product
-    for product in PRODUCT_LABELS
-    if product in set(detections["source_product"])
-]
+
+# ---------------------------------------------------------------------------
+# Product and visualization controls
+# ---------------------------------------------------------------------------
+
+products = sorted(
+    scoped["source_product"].dropna().astype(str).unique()
+)
 
 selected_products = st.sidebar.multiselect(
     "Satellite products",
-    options=available_products,
-    default=available_products,
-    format_func=lambda product: PRODUCT_LABELS[product],
+    products,
+    default=products,
+    format_func=lambda product: LABELS.get(product, product),
 )
 
 map_mode = st.sidebar.radio(
     "Map visualization",
-    options=[
+    [
         "Individual detections",
         "Density heatmap",
         "Aggregated hexagonal grid",
     ],
-    index=0,
 )
 
 show_boundary = st.sidebar.checkbox(
     "Show Victoria boundary",
-    value=True,
+    value=(
+        is_victoria_dataset
+        and BOUNDARY_FILE.is_file()
+    ),
+    disabled=not BOUNDARY_FILE.is_file(),
 )
 
-show_all_points = st.sidebar.checkbox(
+show_all = st.sidebar.checkbox(
     "Show every detection in point mode",
     value=True,
-    help="Only applies to individual-detection mode.",
 )
 
-maximum_map_points = st.sidebar.slider(
+max_points = st.sidebar.slider(
     "Maximum displayed points",
-    min_value=1000,
-    max_value=50000,
-    value=20000,
-    step=1000,
-    disabled=show_all_points or map_mode != "Individual detections",
+    1000,
+    50000,
+    20000,
+    1000,
+    disabled=show_all or map_mode != "Individual detections",
 )
 
-heatmap_radius = st.sidebar.slider(
+heat_radius = st.sidebar.slider(
     "Heatmap radius (pixels)",
-    min_value=10,
-    max_value=60,
-    value=30,
-    step=5,
+    10,
+    60,
+    30,
+    5,
     disabled=map_mode != "Density heatmap",
 )
 
-hexagon_radius = st.sidebar.slider(
+hex_radius = st.sidebar.slider(
     "Hexagon radius (metres)",
-    min_value=1000,
-    max_value=20000,
-    value=5000,
-    step=1000,
+    1000,
+    20000,
+    5000,
+    1000,
     disabled=map_mode != "Aggregated hexagonal grid",
 )
 
 
-# Apply date and product filters to the full detection dataset.
-filtered = detections[
-    detections["date"].between(effective_start, effective_end)
-    & detections["source_product"].isin(selected_products)
-].copy()
+# ---------------------------------------------------------------------------
+# Apply date and product filters
+# ---------------------------------------------------------------------------
+
+date_mask = pd.Series(scoped["date"]).between(
+    effective_start, effective_end
+).to_numpy()
+
+product_mask = scoped["source_product"].isin(
+    selected_products
+).to_numpy()
+
+filtered = scoped.loc[date_mask & product_mask].copy()
 
 if filtered.empty:
     st.warning(
-        "No detections match the selected time period and satellite products."
+        "No detections match the selected dates, area, and products."
     )
     st.stop()
 
 
-# Episode metadata
+# ---------------------------------------------------------------------------
+# Selected episode metadata and evidence
+# ---------------------------------------------------------------------------
+
 if selected_episode is not None:
-    st.subheader(f"Anomaly episode {selected_episode['episode_id']}")
+    st.subheader(
+        f"Anomaly episode {selected_episode['episode_id']}"
+    )
 
     st.write(
         f"**Period:** {selected_episode['start_date']:%d %B %Y} – "
@@ -372,6 +501,7 @@ if selected_episode is not None:
     )
 
     metric1, metric2, metric3, metric4 = st.columns(4)
+
     metric1.metric(
         "Episode duration",
         f"{int(selected_episode['duration_days'])} day(s)",
@@ -400,7 +530,9 @@ if selected_episode is not None:
         [
             {
                 "Satellite product": "MODIS",
-                "Anomaly days": int(selected_episode["modis_anomaly_days"]),
+                "Anomaly days": int(
+                    selected_episode["modis_anomaly_days"]
+                ),
             },
             {
                 "Satellite product": "VIIRS NOAA-20",
@@ -424,54 +556,71 @@ if selected_episode is not None:
     )
 
     with st.expander("Inspect cross-sensor episode evidence"):
-        st.dataframe(evidence, hide_index=True, use_container_width=True)
+        st.dataframe(
+            evidence,
+            hide_index=True,
+            use_container_width=True,
+        )
 
     st.caption(
-        "The episode report summarizes anomaly activity across the period. "
-        "The map below includes all matching detection records in that "
-        "date range, not only records from days or products that triggered "
-        "an anomaly flag."
+        "The episode report summarizes unusual activity across this period. "
+        "The map includes all matching detections in the selected date range, "
+        "not only records from dates or products that triggered an anomaly flag."
     )
 
 
-# Summary metrics describe the complete filtered dataset.
+# ---------------------------------------------------------------------------
+# Geographic overview
+# ---------------------------------------------------------------------------
+
 st.subheader("Geographic overview")
 
-col1, col2, col3 = st.columns(3)
-col1.metric("Matching detection records", f"{len(filtered):,}")
-col2.metric("Satellite products", filtered["source_product"].nunique())
-col3.metric("Dates represented", f"{filtered['date'].nunique():,}")
+metric1, metric2, metric3 = st.columns(3)
+
+metric1.metric(
+    "Matching detection records",
+    f"{len(filtered):,}",
+)
+metric2.metric(
+    "Satellite products",
+    f"{filtered['source_product'].nunique():,}",
+)
+metric3.metric(
+    "Dates represented",
+    f"{filtered['date'].nunique():,}",
+)
 
 st.caption(
-    f"Date range: {effective_start:%d %b %Y} – {effective_end:%d %b %Y}. "
-    "Detection records are not unique fires or burned area."
+    f"{Path(selected_path).name} · {scope} · "
+    f"{effective_start:%d %b %Y}–{effective_end:%d %b %Y}. "
+    "Records are not unique fires or burned area."
 )
 
 
-# Point mode can use a reproducible sample. Density and grid modes use
-# all records that match the active filters.
+# ---------------------------------------------------------------------------
+# Prepare map data
+# ---------------------------------------------------------------------------
+
 if (
     map_mode == "Individual detections"
-    and not show_all_points
-    and len(filtered) > maximum_map_points
+    and not show_all
+    and len(filtered) > max_points
 ):
     map_data = filtered.sample(
-        n=maximum_map_points,
-        random_state=42,
+        n=max_points, random_state=42
     ).copy()
+
     st.caption(
-        f"Displaying {len(map_data):,} sampled points out of "
-        f"{len(filtered):,} matching records. Summary metrics use all records."
+        f"Showing {len(map_data):,} sampled points "
+        f"from {len(filtered):,} matching records."
     )
 else:
     map_data = filtered.copy()
-    st.caption(f"Map input: {len(map_data):,} matching records.")
 
-
-# Point tooltip fields.
 map_data["timestamp_display"] = map_data[
     "timestamp_utc"
 ].dt.strftime("%Y-%m-%d %H:%M UTC")
+
 map_data["latitude_display"] = map_data["latitude"].round(5)
 map_data["longitude_display"] = map_data["longitude"].round(5)
 
@@ -485,9 +634,9 @@ tooltip = {
         "<b>Confidence:</b> {confidence_raw}<br/>"
         "<b>FRP (MW):</b> {frp_mw}<br/>"
         "<b>Brightness:</b> {brightness_raw}<br/>"
-        "<b>MODIS Band 31 brightness:</b> {brightness_11um_raw}<br/>"
-        "<b>VIIRS I4 brightness:</b> {viirs_bright_ti4}<br/>"
-        "<b>VIIRS I5 brightness:</b> {viirs_bright_ti5}<br/>"
+        "<b>MODIS Band 31:</b> {brightness_11um_raw}<br/>"
+        "<b>VIIRS I4:</b> {viirs_bright_ti4}<br/>"
+        "<b>VIIRS I5:</b> {viirs_bright_ti5}<br/>"
         "<b>Day/night:</b> {daynight_raw}"
     ),
     "style": {
@@ -499,23 +648,31 @@ tooltip = {
 }
 
 
-# Construct the map.
+# ---------------------------------------------------------------------------
+# Build and display map
+# ---------------------------------------------------------------------------
+
 layers = []
 
-if show_boundary:
-    layers.append(
-        pdk.Layer(
-            "GeoJsonLayer",
-            data=boundary_geojson,
-            stroked=True,
-            filled=True,
-            get_fill_color=[40, 120, 170, 12],
-            get_line_color=[20, 75, 115, 220],
-            line_width_min_pixels=1.5,
-            get_line_width=2,
-            pickable=False,
+if show_boundary and BOUNDARY_FILE.is_file():
+    try:
+        boundary = load_boundary(str(BOUNDARY_FILE))
+
+        layers.append(
+            pdk.Layer(
+                "GeoJsonLayer",
+                data=boundary,
+                stroked=True,
+                filled=True,
+                get_fill_color=[40, 120, 170, 12],
+                get_line_color=[20, 75, 115, 220],
+                line_width_min_pixels=1.5,
+                get_line_width=2,
+                pickable=False,
+            )
         )
-    )
+    except (OSError, ValueError, ImportError) as exc:
+        st.warning(f"Could not load boundary: {exc}")
 
 if map_mode == "Individual detections":
     layers.append(
@@ -541,7 +698,7 @@ elif map_mode == "Density heatmap":
             data=filtered,
             get_position="[longitude, latitude]",
             get_weight=1,
-            radius_pixels=heatmap_radius,
+            radius_pixels=heat_radius,
             intensity=1,
             threshold=0.05,
             color_range=HEATMAP_COLORS,
@@ -555,7 +712,7 @@ else:
             "HexagonLayer",
             data=filtered,
             get_position="[longitude, latitude]",
-            radius=hexagon_radius,
+            radius=hex_radius,
             elevation_scale=0,
             extruded=False,
             coverage=0.85,
@@ -572,47 +729,38 @@ else:
         )
     )
 
-view_state = pdk.ViewState(
+view = pdk.ViewState(
     latitude=float(filtered["latitude"].median()),
     longitude=float(filtered["longitude"].median()),
-    zoom=6,
+    zoom=2 if scope == "World" else 6,
     pitch=0,
     bearing=0,
 )
 
 deck = pdk.Deck(
     layers=layers,
-    initial_view_state=view_state,
+    initial_view_state=view,
     tooltip=tooltip if map_mode == "Individual detections" else True,
     map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
 )
 
 st.subheader("Detection locations")
-
-if map_mode == "Individual detections":
-    st.caption(
-        "Point colors identify the satellite product. Overlapping points "
-        "may represent repeated or coincident detections."
-    )
-elif map_mode == "Density heatmap":
-    st.caption(
-        "Brighter areas indicate greater local concentration of detection "
-        "records. The result depends on radius and zoom level."
-    )
-else:
-    st.caption(
-        "Hexagonal cells aggregate matching detection records into spatial "
-        "cells. Cell counts are not counts of unique fires."
-    )
-
 st.pydeck_chart(deck, use_container_width=True)
 
 
-# Product-level summary for the active date and product filters.
+# ---------------------------------------------------------------------------
+# Product summary and record inspection
+# ---------------------------------------------------------------------------
+
 st.subheader("Detection records by product")
 
-product_summary = (
-    filtered.groupby("product_label", as_index=False)
+summary = (
+    filtered.assign(
+        product_label=filtered["source_product"]
+        .map(LABELS)
+        .fillna(filtered["source_product"])
+    )
+    .groupby("product_label", as_index=False)
     .agg(
         detection_records=("source_product", "size"),
         first_date=("date", "min"),
@@ -622,33 +770,29 @@ product_summary = (
 )
 
 st.dataframe(
-    product_summary,
+    summary,
     use_container_width=True,
     hide_index=True,
 )
 
 with st.expander("Inspect matching detection records"):
-    display_columns = [
-        column
-        for column in [
-            "timestamp_utc",
-            "latitude",
-            "longitude",
-            "sensor",
-            "source_product",
-            "confidence_raw",
-            "frp_mw",
-            "brightness_raw",
-            "brightness_11um_raw",
-            "viirs_bright_ti4",
-            "viirs_bright_ti5",
-            "daynight_raw",
-        ]
-        if column in filtered.columns
+    columns = [
+        "timestamp_utc",
+        "latitude",
+        "longitude",
+        "sensor",
+        "source_product",
+        "confidence_raw",
+        "frp_mw",
+        "brightness_raw",
+        "brightness_11um_raw",
+        "viirs_bright_ti4",
+        "viirs_bright_ti5",
+        "daynight_raw",
     ]
 
     st.dataframe(
-        filtered[display_columns].sort_values(
+        filtered[columns].sort_values(
             "timestamp_utc", ascending=False
         ),
         use_container_width=True,
@@ -656,7 +800,7 @@ with st.expander("Inspect matching detection records"):
     )
 
 st.caption(
-    "Active-fire detections indicate satellite-observed thermal anomalies. "
-    "An anomaly episode is a period of unusual activity, not necessarily "
-    "one wildfire or a fire perimeter."
+    "World scope displays all records in the selected CSV; it does not "
+    "download additional data. Anomaly episodes are statistical activity "
+    "periods, not confirmed wildfires or fire perimeters."
 )

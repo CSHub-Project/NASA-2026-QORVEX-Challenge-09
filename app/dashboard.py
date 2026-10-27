@@ -1,6 +1,5 @@
 
-"""Interactive QORVEX dashboard for historical fire activity."""
-
+"""QORVEX activity dashboard for selectable harmonized FIRMS datasets."""
 import os
 from pathlib import Path
 
@@ -8,26 +7,19 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-
 DATA_DIR = Path(os.getenv("QORVEX_DATA_DIR", r"C:\Users\Asus\data"))
 ACTIVITY_DIR = DATA_DIR / "activity_calendar"
 
-DAILY_FILE = ACTIVITY_DIR / "victoria_daily_activity_2024.csv"
-ANOMALY_FILE = ACTIVITY_DIR / "victoria_anomaly_report_2024.csv"
-EPISODE_FILE = ACTIVITY_DIR / "victoria_anomaly_episodes_2024.csv"
-
-PRODUCT_COLUMNS = {
-    "MODIS": "detections_MODIS_SP",
-    "VIIRS NOAA-20": "detections_VIIRS_NOAA20_SP",
-    "VIIRS Suomi-NPP": "detections_VIIRS_SNPP_SP",
+PRODUCT_LABELS = {
+    "MODIS_SP": "MODIS",
+    "VIIRS_NOAA20_SP": "VIIRS NOAA-20",
+    "VIIRS_SNPP_SP": "VIIRS Suomi-NPP",
 }
-
-ANOMALY_COLUMNS = {
-    "MODIS": "is_anomaly_detections_MODIS_SP",
-    "VIIRS NOAA-20": "is_anomaly_detections_VIIRS_NOAA20_SP",
-    "VIIRS Suomi-NPP": "is_anomaly_detections_VIIRS_SNPP_SP",
+COLORS = {
+    "MODIS": "#1E78DC",
+    "VIIRS NOAA-20": "#E65A28",
+    "VIIRS Suomi-NPP": "#1EAA6E",
 }
-
 
 st.set_page_config(
     page_title="QORVEX | Fire Activity Explorer",
@@ -37,179 +29,234 @@ st.set_page_config(
 
 
 @st.cache_data
-def load_csv(path_string: str) -> pd.DataFrame:
-    """Load a CSV file and cache it until the app data changes."""
-    return pd.read_csv(path_string)
+def discover_datasets(directory: str) -> list[str]:
+    root = Path(directory)
+    paths = set(root.glob("harmonized_fires*.csv"))
+    paths.update(root.glob("victoria_fires_2024.csv"))
 
-
-def parse_dates(frame: pd.DataFrame, column: str) -> pd.DataFrame:
-    """Return a copy with a normalized UTC date column."""
-    result = frame.copy()
-    result[column] = pd.to_datetime(
-        result[column], errors="coerce", utc=True
-    ).dt.floor("D")
-
-    if result[column].isna().any():
-        raise ValueError(f"Invalid dates found in column {column!r}.")
-
-    return result
-
-
-def parse_boolean(values: pd.Series) -> pd.Series:
-    """Interpret boolean values read from CSV."""
-    if pd.api.types.is_bool_dtype(values):
-        return values.fillna(False).astype(bool)
-
-    normalized = values.astype("string").str.strip().str.lower()
-    return normalized.isin({"true", "1", "yes"})
-
-
-def show_missing_files(missing: list[Path]) -> None:
-    st.error("One or more required data files are missing.")
-    for path in missing:
-        st.code(str(path))
-    st.info(
-        "Run the existing calendar, anomaly-detection, and episode "
-        "scripts before starting the dashboard."
+    return sorted(
+        (str(path.resolve()) for path in paths if path.is_file()),
+        key=lambda path: (
+            Path(path).name != "victoria_fires_2024.csv",
+            Path(path).name.lower(),
+        ),
     )
 
 
 @st.cache_data
-def load_dashboard_data(
-    daily_path: str,
-    anomaly_path: str,
-    episode_path: str,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Load and validate the dashboard's three data sources."""
-    daily = parse_dates(load_csv(daily_path), "date")
-    anomalies = parse_dates(load_csv(anomaly_path), "date")
-    episodes = load_csv(episode_path)
+def load_detections(path: str) -> pd.DataFrame:
+    df = pd.read_csv(path)
 
-    if daily["date"].duplicated().any():
-        raise ValueError("The daily calendar contains duplicate dates.")
-
-    if anomalies["date"].duplicated().any():
-        raise ValueError("The anomaly report contains duplicate dates.")
-
-    required_daily = {"date", "total_detections", *PRODUCT_COLUMNS.values()}
-    missing_daily = required_daily - set(daily.columns)
-    if missing_daily:
-        raise ValueError(
-            f"Daily calendar missing columns: {sorted(missing_daily)}"
-        )
-
-    required_anomaly = {
-        "date",
-        "is_anomaly_total_detections",
-        *ANOMALY_COLUMNS.values(),
+    required = {
+        "latitude",
+        "longitude",
+        "timestamp_utc",
+        "source_product",
     }
-    missing_anomaly = required_anomaly - set(anomalies.columns)
-    if missing_anomaly:
+    missing = required - set(df.columns)
+
+    if missing:
         raise ValueError(
-            f"Anomaly report missing columns: {sorted(missing_anomaly)}"
+            f"Missing required columns: {sorted(missing)}"
         )
 
-    required_episodes = {
-        "episode_id",
-        "start_date",
-        "end_date",
-        "duration_days",
-        "total_detections",
-        "peak_daily_detections",
-        "peak_date",
-        "multi_product_support_pct",
-    }
-    missing_episodes = required_episodes - set(episodes.columns)
-    if missing_episodes:
-        raise ValueError(
-            f"Episode report missing columns: {sorted(missing_episodes)}"
-        )
-
-    daily = daily.sort_values("date").reset_index(drop=True)
-    anomalies = anomalies.sort_values("date").reset_index(drop=True)
-
-    daily = daily.merge(
-        anomalies[
-            ["date", "is_anomaly_total_detections", *ANOMALY_COLUMNS.values()]
-        ],
-        on="date",
-        how="left",
-        validate="one_to_one",
+    df["latitude"] = pd.to_numeric(
+        df["latitude"], errors="coerce"
+    )
+    df["longitude"] = pd.to_numeric(
+        df["longitude"], errors="coerce"
+    )
+    df["timestamp_utc"] = pd.to_datetime(
+        df["timestamp_utc"],
+        errors="coerce",
+        utc=True,
     )
 
-    for column in [
-        "is_anomaly_total_detections",
-        *ANOMALY_COLUMNS.values(),
-    ]:
-        daily[column] = parse_boolean(daily[column])
-
-    for column in ["total_detections", *PRODUCT_COLUMNS.values()]:
-        daily[column] = pd.to_numeric(daily[column], errors="coerce")
-        if daily[column].isna().any() or (daily[column] < 0).any():
-            raise ValueError(
-                f"Invalid or negative counts in column {column!r}."
-            )
-
-    if daily["is_anomaly_total_detections"].isna().any():
-        raise ValueError("Some calendar days have no anomaly report match.")
-
-    episodes["start_date"] = pd.to_datetime(
-        episodes["start_date"], errors="coerce"
+    valid = (
+        df["latitude"].between(-90, 90)
+        & df["longitude"].between(-180, 180)
+        & df["timestamp_utc"].notna()
     )
-    episodes["end_date"] = pd.to_datetime(
-        episodes["end_date"], errors="coerce"
+    df = df.loc[valid].copy()
+    df["date"] = df["timestamp_utc"].dt.floor("D")
+
+    return df.sort_values(
+        "timestamp_utc"
+    ).reset_index(drop=True)
+
+
+@st.cache_data
+def load_legacy_reports(directory: str):
+    root = Path(directory)
+
+    anomaly_path = root / "victoria_anomaly_report_2024.csv"
+    episode_path = root / "victoria_anomaly_episodes_2024.csv"
+
+    anomalies = (
+        pd.read_csv(anomaly_path)
+        if anomaly_path.is_file()
+        else None
     )
-    episodes["peak_date"] = pd.to_datetime(
-        episodes["peak_date"], errors="coerce"
+    episodes = (
+        pd.read_csv(episode_path)
+        if episode_path.is_file()
+        else None
     )
 
-    if episodes[["start_date", "end_date", "peak_date"]].isna().any().any():
-        raise ValueError("The episode report contains invalid dates.")
+    if anomalies is not None and "date" in anomalies.columns:
+        anomalies["date"] = pd.to_datetime(
+            anomalies["date"],
+            errors="coerce",
+            utc=True,
+        ).dt.floor("D")
 
-    return daily, anomalies, episodes
+    if episodes is not None:
+        for column in ("start_date", "end_date", "peak_date"):
+            if column in episodes.columns:
+                episodes[column] = pd.to_datetime(
+                    episodes[column],
+                    errors="coerce",
+                )
+
+    return anomalies, episodes
+
+
+def scope_frame(
+    df: pd.DataFrame,
+    scope: str,
+    west: float,
+    south: float,
+    east: float,
+    north: float,
+) -> pd.DataFrame:
+    if scope == "World":
+        return df.copy()
+
+    return df.loc[
+        df["longitude"].between(west, east)
+        & df["latitude"].between(south, north)
+    ].copy()
 
 
 st.title("🔥 QORVEX — Fire Activity Explorer")
 st.caption(
-    "Interactive historical analysis of harmonized MODIS and VIIRS "
-    "active-fire detections."
+    "Interactive analysis of harmonized MODIS and VIIRS "
+    "active-fire detection records."
 )
 
-missing_files = [
-    path
-    for path in [DAILY_FILE, ANOMALY_FILE, EPISODE_FILE]
-    if not path.is_file()
-]
+datasets = discover_datasets(str(DATA_DIR))
 
-if missing_files:
-    show_missing_files(missing_files)
+if not datasets:
+    st.error(
+        f"No harmonized CSV files found in {DATA_DIR}. "
+        "Set QORVEX_DATA_DIR or place harmonized_fires*.csv there."
+    )
     st.stop()
+
+default = next(
+    (
+        path for path in datasets
+        if Path(path).name == "victoria_fires_2024.csv"
+    ),
+    datasets[0],
+)
+
+st.sidebar.header("Data and filters")
+
+selected_path = st.sidebar.selectbox(
+    "Harmonized dataset",
+    datasets,
+    index=datasets.index(default),
+    format_func=lambda path: Path(path).name,
+)
+
+scope = st.sidebar.radio(
+    "Geographic scope",
+    ["World", "Bounding box"],
+    horizontal=True,
+)
+
+if scope == "Bounding box":
+    with st.sidebar.expander(
+        "Bounding-box coordinates",
+        expanded=True,
+    ):
+        st.caption(
+            "West, south, east, north; decimal degrees."
+        )
+        west = st.number_input(
+            "West longitude",
+            min_value=-180.0,
+            max_value=180.0,
+            value=140.9,
+            step=0.1,
+        )
+        south = st.number_input(
+            "South latitude",
+            min_value=-90.0,
+            max_value=90.0,
+            value=-39.2,
+            step=0.1,
+        )
+        east = st.number_input(
+            "East longitude",
+            min_value=-180.0,
+            max_value=180.0,
+            value=150.1,
+            step=0.1,
+        )
+        north = st.number_input(
+            "North latitude",
+            min_value=-90.0,
+            max_value=90.0,
+            value=-33.9,
+            step=0.1,
+        )
+
+    if west >= east or south >= north:
+        st.sidebar.error(
+            "Require west < east and south < north."
+        )
+        st.stop()
+else:
+    west, south, east, north = (
+        -180.0, -90.0, 180.0, 90.0
+    )
+    st.sidebar.caption(
+        "World shows all records in this file; "
+        "it does not fetch additional global data."
+    )
 
 try:
-    daily, anomalies, episodes = load_dashboard_data(
-        str(DAILY_FILE),
-        str(ANOMALY_FILE),
-        str(EPISODE_FILE),
+    detections = load_detections(selected_path)
+except (OSError, ValueError, KeyError) as error:
+    st.error(f"Could not load dataset: {error}")
+    st.stop()
+
+if detections.empty:
+    st.warning(
+        "The selected dataset contains no valid detections."
     )
-except (ValueError, KeyError) as error:
-    st.error(f"Could not load dashboard data: {error}")
     st.stop()
 
-if daily.empty:
-    st.warning("The daily activity calendar is empty.")
+filtered = scope_frame(
+    detections, scope, west, south, east, north
+)
+
+if filtered.empty:
+    st.warning(
+        "No detections match the geographic scope."
+    )
     st.stop()
 
-# Sidebar filters
-st.sidebar.header("Explore the data")
-
-minimum_date = daily["date"].min().date()
-maximum_date = daily["date"].max().date()
+minimum = filtered["date"].min().date()
+maximum = filtered["date"].max().date()
 
 date_range = st.sidebar.date_input(
     "Date range",
-    value=(minimum_date, maximum_date),
-    min_value=minimum_date,
-    max_value=maximum_date,
+    value=(minimum, maximum),
+    min_value=minimum,
+    max_value=maximum,
 )
 
 if not isinstance(date_range, (tuple, list)) or len(date_range) != 2:
@@ -222,63 +269,83 @@ if start_date > end_date:
     st.error("The start date must be on or before the end date.")
     st.stop()
 
+products = sorted(
+    filtered["source_product"].dropna().astype(str).unique()
+)
+
 selected_products = st.sidebar.multiselect(
     "Satellite products",
-    options=list(PRODUCT_COLUMNS.keys()),
-    default=list(PRODUCT_COLUMNS.keys()),
+    products,
+    default=products,
+    format_func=lambda product: PRODUCT_LABELS.get(
+        product, product
+    ),
 )
 
-show_anomalies = st.sidebar.checkbox(
-    "Highlight overall anomaly days",
-    value=True,
-)
-
-filtered = daily[
-    daily["date"].dt.date.between(start_date, end_date)
+filtered = filtered.loc[
+    filtered["date"].dt.date.between(start_date, end_date)
+    & filtered["source_product"].isin(selected_products)
 ].copy()
 
 if filtered.empty:
-    st.warning("No daily records are available for this date range.")
+    st.warning(
+        "No detections match the selected dates, scope, and products."
+    )
     st.stop()
 
-# Summary metrics
-total_detections = int(filtered["total_detections"].sum())
-peak_index = filtered["total_detections"].idxmax()
-peak_row = filtered.loc[peak_index]
-anomaly_days = int(filtered["is_anomaly_total_detections"].sum())
+daily = (
+    filtered.assign(
+        day=filtered["date"].dt.date,
+        product=filtered["source_product"]
+        .map(PRODUCT_LABELS)
+        .fillna(filtered["source_product"]),
+    )
+    .groupby(["day", "product"], as_index=False)
+    .size()
+    .rename(columns={"day": "date", "size": "detections"})
+)
 
-period_episodes = episodes[
-    (episodes["start_date"].dt.date <= end_date)
-    & (episodes["end_date"].dt.date >= start_date)
-]
+totals = daily.groupby("date", as_index=False)["detections"].sum()
+peak = totals.loc[totals["detections"].idxmax()]
 
-metric1, metric2, metric3, metric4 = st.columns(4)
-
-metric1.metric("Detection records", f"{total_detections:,}")
-metric2.metric("Peak daily detections", f"{int(peak_row['total_detections']):,}")
-metric3.metric("Overall anomaly days", f"{anomaly_days:,}")
-metric4.metric("Episodes intersecting period", f"{len(period_episodes):,}")
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Detection records", f"{len(filtered):,}")
+col2.metric(
+    "Satellite products",
+    f"{filtered['source_product'].nunique():,}",
+)
+col3.metric(
+    "Dates represented",
+    f"{filtered['date'].dt.date.nunique():,}",
+)
+col4.metric(
+    "Peak daily detections",
+    f"{int(peak['detections']):,}",
+)
 
 st.caption(
-    f"Peak date: {peak_row['date'].strftime('%d %B %Y')}. "
+    f"{Path(selected_path).name} · {scope} · "
+    f"{start_date:%d %b %Y}–{end_date:%d %b %Y}. "
     "Detection records are not unique fires or burned area."
 )
 
-# Interactive daily timeline
 st.subheader("Daily fire-detection activity")
 
-figure = go.Figure()
+fig = go.Figure()
 
-for product in selected_products:
-    count_column = PRODUCT_COLUMNS[product]
+for product in daily["product"].drop_duplicates():
+    part = daily[daily["product"] == product]
 
-    figure.add_trace(
+    fig.add_trace(
         go.Scatter(
-            x=filtered["date"],
-            y=filtered[count_column],
+            x=part["date"],
+            y=part["detections"],
             mode="lines",
             name=product,
-            line={"width": 1.8},
+            line={
+                "width": 1.8,
+                "color": COLORS.get(product),
+            },
             hovertemplate=(
                 "%{x|%d %b %Y}<br>"
                 + product
@@ -287,185 +354,151 @@ for product in selected_products:
         )
     )
 
-if show_anomalies:
-    overall_flags = filtered["is_anomaly_total_detections"]
-
-    figure.add_trace(
-        go.Scatter(
-            x=filtered.loc[overall_flags, "date"],
-            y=filtered.loc[overall_flags, "total_detections"],
-            mode="markers",
-            name="Overall anomaly",
-            marker={
-                "symbol": "diamond",
-                "size": 9,
-                "color": "#D97706",
-                "line": {"width": 1, "color": "#FFFFFF"},
-            },
-            customdata=filtered.loc[
-                overall_flags, ["total_detections"]
-            ].to_numpy(),
-            hovertemplate=(
-                "%{x|%d %b %Y}<br>"
-                "Overall detections: %{customdata[0]:,}"
-                "<br>Anomalous overall<extra></extra>"
-            ),
-        )
-    )
-
-for _, episode in period_episodes.iterrows():
-    figure.add_vrect(
-        x0=max(pd.Timestamp(start_date), episode["start_date"]),
-        x1=min(
-            pd.Timestamp(end_date) + pd.Timedelta(days=1),
-            episode["end_date"] + pd.Timedelta(days=1),
-        ),
-        fillcolor="#D97706",
-        opacity=0.09,
-        line_width=0,
-        layer="below",
-    )
-
-figure.update_layout(
-    height=520,
+fig.update_layout(
+    height=460,
     hovermode="x unified",
     xaxis_title="Date",
     yaxis_title="Detection records per day",
-    legend_title="Series",
-    margin={"l": 20, "r": 20, "t": 30, "b": 20},
+    margin={"l": 20, "r": 20, "t": 25, "b": 20},
 )
-figure.update_xaxes(rangeslider_visible=True)
+fig.update_xaxes(rangeslider_visible=True)
 
-st.plotly_chart(figure, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True)
 
-if not selected_products:
-    st.info("Select at least one satellite product to display its daily series.")
-
-# Overall daily activity
-with st.expander("Inspect daily activity records"):
-    display_columns = [
-        "date",
-        "total_detections",
-        *PRODUCT_COLUMNS.values(),
-        "is_anomaly_total_detections",
-    ]
-    st.dataframe(
-        filtered[display_columns].sort_values("date", ascending=False),
-        use_container_width=True,
-        hide_index=True,
-    )
-
-# Episode explorer
-st.subheader("Episode explorer")
-
-if period_episodes.empty:
-    st.info("No anomaly episodes overlap the selected date range.")
-else:
-    def episode_label(row: pd.Series) -> str:
-        return (
-            f"{row['episode_id']} · "
-            f"{row['start_date']:%d %b}–{row['end_date']:%d %b %Y} · "
-            f"{int(row['duration_days'])} days"
-        )
-
-    episode_records = period_episodes.to_dict(orient="records")
-    episode_labels = {
-        episode_label(pd.Series(record)): record
-        for record in episode_records
-    }
-
-    selected_label = st.selectbox(
-        "Select an episode",
-        options=list(episode_labels.keys()),
-    )
-    selected_episode = episode_labels[selected_label]
-
-    st.markdown(f"### {selected_episode['episode_id']}")
-
-    e1, e2, e3, e4 = st.columns(4)
-    e1.metric("Duration", f"{int(selected_episode['duration_days'])} days")
-    e2.metric(
-        "Detection records",
-        f"{int(selected_episode['total_detections']):,}",
-    )
-    e3.metric(
-        "Peak daily detections",
-        f"{int(selected_episode['peak_daily_detections']):,}",
-    )
-    e4.metric(
-        "Multi-product support",
-        f"{float(selected_episode['multi_product_support_pct']):.1f}%",
-    )
-
-    st.write(
-        f"**Period:** {selected_episode['start_date']:%d %B %Y} – "
-        f"{selected_episode['end_date']:%d %B %Y}"
-    )
-    st.write(
-        f"**Peak date:** {selected_episode['peak_date']:%d %B %Y}"
-    )
-
-    evidence_columns = [
-        "modis_anomaly_days",
-        "viirs_noaa20_anomaly_days",
-        "viirs_snpp_anomaly_days",
-        "multi_product_anomaly_days",
-    ]
-
-    if all(column in selected_episode for column in evidence_columns):
-        evidence_labels = {
-            "modis_anomaly_days": "MODIS anomaly days",
-            "viirs_noaa20_anomaly_days": "VIIRS NOAA-20 anomaly days",
-            "viirs_snpp_anomaly_days": "VIIRS Suomi-NPP anomaly days",
-            "multi_product_anomaly_days": "Days with multiple products flagged",
-        }
-
-        evidence_frame = pd.DataFrame(
-            {
-                "Evidence measure": [
-                    evidence_labels[column]
-                    for column in evidence_columns
-                ],
-                "Days": [
-                    int(selected_episode[column])
-                    for column in evidence_columns
-                ],
-            }
-        )
-
-        st.dataframe(evidence_frame, hide_index=True, use_container_width=True)
-
-    st.caption(
-        "Cross-product anomaly agreement is supporting evidence. "
-        "An episode is not a confirmed individual wildfire."
-    )
-
-# Monthly activity context
 st.subheader("Monthly activity")
 
 monthly = (
-    filtered.assign(month=filtered["date"].dt.strftime("%Y-%m"))
-    .groupby("month", as_index=False)["total_detections"]
-    .sum()
+    filtered.assign(
+        month=filtered["date"].dt.strftime("%Y-%m")
+    )
+    .groupby("month", as_index=False)
+    .size()
+    .rename(columns={"size": "detections"})
 )
 
-monthly_figure = go.Figure(
+monthly_fig = go.Figure(
     go.Bar(
         x=monthly["month"],
-        y=monthly["total_detections"],
-        hovertemplate="%{x}<br>Detection records: %{y:,}<extra></extra>",
+        y=monthly["detections"],
+        hovertemplate=(
+            "%{x}<br>Records: %{y:,}<extra></extra>"
+        ),
     )
 )
-monthly_figure.update_layout(
+
+monthly_fig.update_layout(
     height=330,
     xaxis_title="Month",
     yaxis_title="Detection records",
     margin={"l": 20, "r": 20, "t": 20, "b": 20},
 )
-st.plotly_chart(monthly_figure, use_container_width=True)
+st.plotly_chart(monthly_fig, use_container_width=True)
+
+# Legacy anomaly reports are only associated with the original
+# Victoria 2024 dataset. They are not recalculated for other data.
+if Path(selected_path).name == "victoria_fires_2024.csv":
+    anomalies, episodes = load_legacy_reports(str(ACTIVITY_DIR))
+
+    if anomalies is not None and {
+        "date", "is_anomaly_total_detections"
+    }.issubset(anomalies.columns):
+        st.subheader("Victoria 2024 anomaly context")
+
+        anomaly_slice = anomalies.loc[
+            anomalies["date"].dt.date.between(
+                start_date, end_date
+            )
+        ]
+        flags = (
+            anomaly_slice["is_anomaly_total_detections"]
+            .astype(str)
+            .str.lower()
+            .isin({"true", "1", "yes"})
+        )
+
+        st.metric(
+            "Precomputed overall anomaly days",
+            f"{int(flags.sum()):,}",
+        )
+        st.caption(
+            "These flags belong to the legacy Victoria 2024 "
+            "analysis and are not recalculated for other datasets "
+            "or geographic scopes."
+        )
+
+    if (
+        episodes is not None
+        and not episodes.empty
+        and {"episode_id", "start_date", "end_date"}.issubset(
+            episodes.columns
+        )
+    ):
+        relevant_episodes = episodes.loc[
+            (episodes["start_date"].dt.date <= end_date)
+            & (episodes["end_date"].dt.date >= start_date)
+        ]
+
+        st.subheader("Anomaly episodes")
+
+        if relevant_episodes.empty:
+            st.info(
+                "No precomputed episodes overlap the selected period."
+            )
+        else:
+            # Each column appears only once; duplicate names cause
+            # a PyArrow error when Streamlit renders the dataframe.
+            display_columns = [
+                "episode_id",
+                "start_date",
+                "end_date",
+                "duration_days",
+                "total_detections",
+                "peak_daily_detections",
+                "multi_product_support_pct",
+            ]
+            display_columns = [
+                column for column in display_columns
+                if column in relevant_episodes.columns
+            ]
+
+            st.dataframe(
+                relevant_episodes[display_columns],
+                use_container_width=True,
+                hide_index=True,
+            )
+
+with st.expander("Inspect daily activity"):
+    st.dataframe(
+        totals.sort_values("date", ascending=False),
+        use_container_width=True,
+        hide_index=True,
+    )
+
+with st.expander("Inspect filtered detections"):
+    display_columns = [
+        column for column in [
+            "timestamp_utc",
+            "latitude",
+            "longitude",
+            "sensor",
+            "source_product",
+            "confidence_raw",
+            "frp_mw",
+            "brightness_raw",
+        ]
+        if column in filtered.columns
+    ]
+
+    st.dataframe(
+        filtered[display_columns].sort_values(
+            "timestamp_utc", ascending=False
+        ),
+        use_container_width=True,
+        hide_index=True,
+    )
 
 st.caption(
-    "Prototype: Victoria, 2024. Anomalies are relative to the current "
-    "statistical baseline and should not be interpreted as verified fire "
-    "severity or burned area."
+    "World scope only filters the selected file; it does not "
+    "download data. Anomaly episodes are statistical activity "
+    "periods, not confirmed individual wildfires."
 )
