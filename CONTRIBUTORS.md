@@ -7,8 +7,8 @@ that is included in the final project.
 ## Official QORVEX event roster
 
 - Aria Fazlollah — Team Owner / Team Lead
-- Melika Ostad Jafari — Team Member
 - Tara Ali Asgharzadeh — Team Member
+- Melika Ostad Jafari — Team Member
 - Mobina Amrollahi — Team Member
 
 This roster matches the official NASA Space Apps team page. The sections below

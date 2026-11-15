@@ -69,10 +69,10 @@ Use the disclosure required by the official form and the event rules. The curren
 
 ## Links
 
-- Web application: http://202.133.91.125:8088/
+- Official project page: https://www.spaceappschallenge.org/2026/find-a-team/qorvex/?tab=project
 - Source: https://github.com/CSHub-Project/NASA-2026-QORVEX-Challenge-09
 - Challenge: https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/
-- Seven-slide demonstration: http://202.133.91.125:8088/demo/fyrora-space-apps-demo.pdf
+- Seven-slide demonstration: `submission/demo/fyrora-space-apps-demo-submission.pdf`
 
 ## Final submission checks
 
