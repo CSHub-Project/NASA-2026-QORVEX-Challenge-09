@@ -1,0 +1,14 @@
+[Unit]
+Description=Fyrora preview WebSocket live reload
+After=network.target docker.service
+
+[Service]
+Type=simple
+Environment=LIVE_RELOAD_HOST=127.0.0.1
+ExecStart=/usr/bin/python3 /opt/fyrora/live_reload.py /opt/fyrora/current/data/manifest.json
+Restart=always
+RestartSec=2
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,298 +1,119 @@
-# QORVEX
-### Global Active-Fire Intelligence Platform
+# Fyrora
 
-**NASA Space Apps Challenge 2026 — Challenge 09**
+An evidence-first **QORVEX** prototype for the NASA Space Apps 2026 challenge
+**Harmonization of MODIS and VIIRS Hot Spots**.
 
-QORVEX is a data-driven platform designed to explore, harmonize, and analyze satellite-based active-fire detections. It brings together observations from NASA's MODIS and VIIRS instruments to support geographical exploration, spatial analysis, temporal analysis, and the investigation of fire-activity patterns.
+Created and technically led by **Tara Ali Asgharzadeh**. See
+[`CONTRIBUTORS.md`](CONTRIBUTORS.md) for the contribution record and
+[`LICENSE`](LICENSE) for reuse terms.
 
-The project aims to transform heterogeneous satellite observations into a structured analytical environment that makes fire-related information easier to explore and interpret.
+The web product also includes a clearly separated, descriptive Victoria 2024
+multi-sensor lab contributed by Aria Fazlollah. It compares filtered MODIS,
+S-NPP VIIRS and NOAA-20 VIIRS records and maps the top H3 cells; it is not
+presented as harmonized output, a coverage mask, anomaly score or fire count.
+See [`docs/qorvex-integration-review.fa.md`](docs/qorvex-integration-review.fa.md).
+The same section now includes a date-, overpass- and product-filterable
+OpenStreetMap explorer backed by 91,265 frozen 2024 FIRMS Standard Processing
+records. The raw rectangular-window map and the 57,305-record
+political-boundary-filtered H3 analysis are labeled as different populations.
 
----
+## Current objective
 
-## 1. Project Objectives
+Build a reproducible scientific bridge between Aqua MODIS and S-NPP VIIRS. The count candidate is evaluated across 2017–2020 and four study windows, including Western Iberia and strict leave-one-region-out transfer tests. The web product now includes a browser-side AOI builder for bounding boxes inside the Western Iberia evidence window, UTC date-range selection, day/night filtering, a same-calendar-day historical-median comparison, and AOI CSV export without exposing the private FIRMS key. A separately specified 2021 Western Iberia check reduces count WAPE from 1.160 to 0.735 on 1,253 cell-passes. Precommitted 2022 and 2023 Western Iberia comparisons retain the incumbent model: geometry-aware features score slightly better in 2023 but fail the frozen uncertainty gate. A frozen 2023 EFFIS outcome check also remains visibly failed: harmonized event-area Spearman is 0.130 with a bootstrap interval crossing zero, despite a significant calendar-shift null test. An eight-pair dual-sensor full-swath audit now distinguishes clear sampling, fire, obscured/non-land and not-observed evidence. The bilingual dashboard exposes an Evidence Passport with scoped, hashed claims and keeps operational readiness false while a blocking gate fails.
 
-QORVEX aims to:
-
-- Integrate active-fire detection records from multiple satellite products.
-- Harmonize heterogeneous observations into a consistent data structure while preserving sensor-specific information.
-- Explore the geographical distribution of recorded detections.
-- Analyze spatial patterns using the H3 hierarchical hexagonal spatial indexing system.
-- Investigate temporal variations and unusual detection patterns.
-- Provide interactive visualizations to support exploration and interpretation.
-
-## 2. Data Sources
-
-QORVEX uses NASA Fire Information for Resource Management System (FIRMS) data.
-
-The current collection pipeline supports three historical standard-processing products:
-
-| Satellite product | Instrument |
-|---|---|
-| MODIS_SP | MODIS |
-| VIIRS_SNPP_SP | VIIRS |
-| VIIRS_NOAA20_SP | VIIRS |
-
-The system preserves important product-specific attributes, including:
-
-- Acquisition timestamps
-- Geographic coordinates
-- Satellite and sensor identifiers
-- Confidence information
-- Fire Radiative Power (FRP)
-- Sensor-specific brightness temperatures
-- Scan and track information
-- Processing and source provenance
-
-**Data access:** [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/)
-
-## 3. Core Capabilities
-
-### 3.1 Data Collection and Harmonization
-
-The configurable FIRMS collector supports geographical areas, date ranges, multiple satellite products, and configurable collection chunks.
-
-The harmonization module transforms heterogeneous FIRMS records into a common schema while retaining the original sensor-specific measurements and relevant metadata.
-
-### 3.2 Geographic Exploration
-
-The Geographic Map dashboard provides interactive exploration of satellite detection records.
-
-Its capabilities include:
-
-- Geographical visualization of detections
-- Date and satellite-product filtering
-- Detection-density exploration
-- Heatmap and hexagon-based visualization
-- Cross-sensor evidence exploration
-
-### 3.3 H3 Spatial Analytics
-
-QORVEX uses Uber's H3 hierarchical spatial indexing system to organize detection records into hexagonal geographic cells.
-
-The analytical pipeline currently supports H3 resolutions 5, 7, 8, and 9.
-
-This enables spatial aggregation and exploration at different geographic scales.
-
-### 3.4 Temporal and Anomaly Analysis
-
-The project includes analytical components for:
-
-- Daily and monthly detection patterns
-- Seasonal variations
-- Historical detection anomalies
-- Anomaly episode analysis
-- Cross-sensor temporal comparisons
-
-These analyses are intended to identify unusual patterns in recorded detections, not to establish confirmed wildfire events.
-
-### 3.5 Interactive Dashboard
-
-The application is built with Streamlit and includes:
-
-- Main dashboard
-- Geographic Map
-- H3 Spatial Analytics
-
-## 4. Technology Stack
-
-| Technology | Purpose |
-|---|---|
-| Python | Core development |
-| pandas | Data manipulation |
-| GeoPandas | Geospatial data processing |
-| PyArrow | Parquet storage |
-| H3 | Hierarchical spatial indexing |
-| Plotly | Interactive visualization |
-| PyDeck | Geospatial visualization |
-| Streamlit | Interactive application |
-| pytest | Automated testing |
-| uv | Python project and dependency management |
-
-## 5. Project Architecture
-
-```text
-NASA-2026-QORVEX-Challenge-09/
-│
-├── app/
-│   ├── dashboard.py
-│   ├── data_access.py
-│   └── pages/
-│       ├── 2_Geographic_Map.py
-│       └── 3_H3_Spatial_Analytics.py
-│
-├── scripts/
-│   ├── collect_firms_2024.py
-│   ├── build_analytical_dataset_2024.py
-│   ├── build_victoria_2024_filtered.py
-│   ├── build_global_test_2024.py
-│   ├── analyze_*.py
-│   ├── explore_victoria_2024.py
-│   └── validate_*.py
-│
-├── src/
-│   └── qorvex/
-│       ├── harmonize_firms.py
-│       ├── spatial_index.py
-│       ├── daily_aggregation.py
-│       ├── geographic_filter.py
-│       ├── anomaly_detection.py
-│       ├── episode_detection.py
-│       └── activity_calendar.py
-│
-├── tests/
-│   ├── test_collect_firms_2024.py
-│   ├── test_harmonize_firms.py
-│   ├── test_spatial_index.py
-│   └── test_daily_aggregation.py
-│
-├── reports/
-├── pyproject.toml
-├── uv.lock
-├── LICENSE
-└── README.md
-```
-
-## 6. Installation
-
-### Prerequisites
-
-- Python 3.13 or later
-- Git
-- uv
-
-Install uv following its official documentation:
-
-https://docs.astral.sh/uv/
-
-### Clone the repository
+## Setup
 
 ```powershell
-git clone https://github.com/CSHub-Project/NASA-2026-QORVEX-Challenge-09.git
-cd NASA-2026-QORVEX-Challenge-09
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+Copy-Item .env.example .env
 ```
 
-### Install dependencies
+Add `FIRMS_MAP_KEY` to `.env`. Never commit that file.
+
+## Commands
 
 ```powershell
-uv sync --dev
+# Download 2019 MODIS + S-NPP VIIRS standard-processing data.
+.\.venv\Scripts\python.exe -m pipeline.fetch_firms --year 2019
+
+# Normalize, aggregate, and generate day-one figures.
+.\.venv\Scripts\python.exe -m pipeline.analyze_overlap --year 2019
+
+# For a fresh four-year build, download and normalize every configured region.
+# The downloader resumes completed five-day partitions and respects the FIRMS
+# 10-minute transaction budget; rerun after the budget resets if it stops.
+foreach ($year in 2017..2020) {
+  .\.venv\Scripts\python.exe -m pipeline.fetch_firms --year $year
+  .\.venv\Scripts\python.exe -m pipeline.analyze_overlap --year $year
+}
+
+# Build 10 km Aqua MODIS / S-NPP VIIRS pairs and score the baseline.
+.\.venv\Scripts\python.exe -m pipeline.day2_baseline --year 2019 --grid-km 10 --test-start 2019-10-01
+
+# Train, validate, and test the guarded day-three harmonization candidate.
+.\.venv\Scripts\python.exe -m pipeline.day3_harmonize --year 2019 --grid-km 10 --validation-start 2019-07-01 --test-start 2019-10-01 --bootstrap 500
+
+# Verify sensitivity to the shared equal-area grid size.
+.\.venv\Scripts\python.exe -m pipeline.day3_sensitivity --year 2019 --grids 5 10 25 --bootstrap 100
+
+# Reproduce the four-year holdout, spatial transfer, and calendar-ready output.
+.\.venv\Scripts\python.exe -m pipeline.raw_manifest
+.\.venv\Scripts\python.exe -m pipeline.day4_multiyear --years 2017 2018 2019 2020 --grid-km 10 --validation-start 2019-01-01 --test-start 2020-01-01 --bootstrap 500
+
+# Reproduce the separately specified 2021 Western Iberia year check.
+.\.venv\Scripts\python.exe -m pipeline.fetch_firms --year 2021 --region western_iberia
+.\.venv\Scripts\python.exe -m pipeline.analyze_overlap --year 2021 --region western_iberia
+.\.venv\Scripts\python.exe -m pipeline.raw_manifest --year 2021 --region western_iberia --output outputs/tables/firms_raw_manifest_2021_western_iberia.csv
+.\.venv\Scripts\python.exe -m pipeline.evaluate_2021
+
+# Reproduce the preregistered 2022 candidate comparison after reading its protocol.
+.\.venv\Scripts\python.exe -m pipeline.fetch_firms --year 2022 --region western_iberia
+.\.venv\Scripts\python.exe -m pipeline.analyze_overlap --year 2022 --region western_iberia
+.\.venv\Scripts\python.exe -m pipeline.raw_manifest --year 2022 --region western_iberia --output outputs/tables/firms_raw_manifest_2022_western_iberia.csv
+.\.venv\Scripts\python.exe -m pipeline.day7_upgrade
+
+# Reproduce the frozen 2023 geometry and interval test.
+.\.venv\Scripts\python.exe -m pipeline.fetch_firms --year 2023 --region western_iberia
+.\.venv\Scripts\python.exe -m pipeline.analyze_overlap --year 2023 --region western_iberia
+.\.venv\Scripts\python.exe -m pipeline.raw_manifest --year 2023 --region western_iberia --output outputs/tables/firms_raw_manifest_2023_western_iberia.csv
+.\.venv\Scripts\python.exe -m pipeline.evaluate_2023
+
+# Audit which MODIS-positive matched cells have no VIIRS detection in the same cell.
+.\.venv\Scripts\python.exe -m pipeline.observability_audit
+
+# Reproduce the frozen semi-independent EFFIS event/outcome check after obtaining
+# the official effis_layer.zip at data/raw/day10_effis/effis_layer.zip.
+.\.venv\Scripts\python.exe -m pipeline.day10_external_validation
+
+# Reproduce the eight-pair MODIS/VIIRS full-swath audit after authenticated
+# granules listed in the frozen Day-11 config are present under data/raw/swaths/.
+.\.venv\Scripts\python.exe -m pipeline.day11_multiswath_audit
+
+# Build the claim registry, Evidence Passport, GeoJSON and OpenAPI contract.
+.\.venv\Scripts\python.exe -m pipeline.day12_evidence_product
+
+# Build the dependency-free Fyrora dashboard into dist/.
+.\.venv\Scripts\python.exe -m pipeline.build_site
+
+# Preview the dashboard locally.
+.\.venv\Scripts\python.exe -m http.server 8000 --directory dist
+
+# Run tests.
+.\.venv\Scripts\python.exe -m pytest
 ```
 
-## 7. Running QORVEX
+The first full-swath observation pilot and its scientific limits are documented in [`docs/day-8-swath-observation.fa.md`](docs/day-8-swath-observation.fa.md).
+The sealed three-region 2024 transfer protocol and outcome are in [`docs/day-9-independent-regions-protocol.md`](docs/day-9-independent-regions-protocol.md) and [`docs/day-9-independent-regions-results.fa.md`](docs/day-9-independent-regions-results.fa.md).
+The frozen EFFIS protocol and its failed-but-informative outcome are in [`docs/day-10-external-validation-protocol.md`](docs/day-10-external-validation-protocol.md) and [`docs/day-10-external-validation-results.fa.md`](docs/day-10-external-validation-results.fa.md).
+The dual-sensor swath audit is in [`docs/day-11-multiswath-protocol.md`](docs/day-11-multiswath-protocol.md) and [`docs/day-11-multiswath-results.fa.md`](docs/day-11-multiswath-results.fa.md). The evidence-product contract and outcome are in [`docs/day-12-product-readiness-protocol.md`](docs/day-12-product-readiness-protocol.md) and [`docs/day-12-evidence-product-results.fa.md`](docs/day-12-evidence-product-results.fa.md).
 
-Start the Streamlit application:
+Research notes are in [`docs/research-and-winning-strategy.fa.md`](docs/research-and-winning-strategy.fa.md). The original three-region science is recorded in [`docs/day-4-results.fa.md`](docs/day-4-results.fa.md); the current four-region evidence and eligibility caveat are in [`docs/day-7-europe-results.fa.md`](docs/day-7-europe-results.fa.md). The 2021 protocol/outcome are in [`docs/independent-2021-protocol.md`](docs/independent-2021-protocol.md) and [`docs/independent-2021-results.fa.md`](docs/independent-2021-results.fa.md). The 2022 comparison is in [`docs/day-7-2022-results.fa.md`](docs/day-7-2022-results.fa.md); the frozen 2023 geometry and uncertainty test is in [`docs/2023-geometry-and-uncertainty-protocol.md`](docs/2023-geometry-and-uncertainty-protocol.md) and [`docs/2023-geometry-and-uncertainty-results.fa.md`](docs/2023-geometry-and-uncertainty-results.fa.md). The sensor-support audit and global readiness gates are in [`docs/global-readiness-and-sensor-support.fa.md`](docs/global-readiness-and-sensor-support.fa.md). The European product and startup validation gates are in [`docs/europe-product-strategy.fa.md`](docs/europe-product-strategy.fa.md). Copy-ready project text, timed demo scripts, architecture, scorecard, and the final checklist live in [`submission/`](submission/README.md). Deployment limits are summarized in [`docs/model-card.md`](docs/model-card.md).
 
-```powershell
-uv run streamlit run app/dashboard.py
-```
+The compact paired-cell and scored-holdout artifacts required by the site build
+and core tests are tracked in `data/processed/`. Larger source and intermediate
+partitions remain excluded; their hashes are recorded in the committed
+manifests.
 
-The application will be available at the local Streamlit address displayed in the terminal.
+The official-event boundary is recorded in [`PREEXISTING_WORK.md`](PREEXISTING_WORK.md) and [`HACKATHON_WORKLOG.md`](HACKATHON_WORKLOG.md). These files distinguish the research prototype from work completed on the 2026 hackathon branch.
 
-### Data configuration
-
-QORVEX uses local datasets that are not included in the repository.
-
-For the Parquet-based analytical dataset, configure:
-
-```powershell
-$env:QORVEX_PARQUET_DIR = "data/processed/victoria_2024_filtered"
-```
-
-For legacy CSV-based datasets, the dashboard can use:
-
-```powershell
-$env:QORVEX_DATA_DIR = "data"
-```
-
-The required dataset files must exist in the configured directories.
-
-## 8. Running the FIRMS Collector
-
-The collector requires a NASA FIRMS API key.
-
-Configure it locally in PowerShell:
-
-```powershell
-$env:FIRMS_MAP_KEY = "YOUR_FIRMS_MAP_KEY"
-```
-
-Example configuration for a global collection:
-
-```powershell
-$env:QORVEX_AREA = "world"
-$env:QORVEX_START_DATE = "2024-01-01"
-$env:QORVEX_END_DATE = "2024-01-01"
-$env:QORVEX_PRODUCTS = "MODIS_SP,VIIRS_SNPP_SP,VIIRS_NOAA20_SP"
-$env:QORVEX_CHUNK_DAYS = "1"
-```
-
-Run:
-
-```powershell
-uv run python scripts/collect_firms_2024.py
-```
-
-The collector supports historical standard-processing products currently configured in the project. Check the NASA FIRMS documentation for product availability and API requirements.
-
-**Never commit API keys or other credentials to the repository.**
-
-## 9. Running Tests
-
-Run the complete automated test suite:
-
-```powershell
-uv run pytest -q
-```
-
-The development test suite currently contains 58 passing tests.
-
-## 10. Scientific Considerations and Limitations
-
-QORVEX is designed around careful interpretation of satellite observations.
-
-Important considerations include:
-
-- A hotspot detection is not necessarily a confirmed wildfire.
-- Multiple satellite detections may refer to the same underlying fire activity.
-- A missing FIRMS record does not necessarily indicate an absence of fire activity.
-- MODIS and VIIRS have different sensor characteristics and observation properties.
-- MODIS numerical confidence values and VIIRS categorical confidence levels must retain their original meanings.
-- FRP represents instantaneous radiative power in megawatts, not total energy released.
-- Spatial and temporal co-occurrence does not independently establish that detections belong to the same fire event.
-
-Consequently, QORVEX distinguishes recorded detection patterns from validated fire events and avoids treating exploratory indicators as confirmed measurements of wildfire severity.
-
-## 11. Current Demonstration
-
-The project includes a global FIRMS demonstration based on historical observations from **1 January 2024**.
-
-The combined dataset contains:
-
-| Product | Detection records |
-|---|---:|
-| MODIS_SP | 9,391 |
-| VIIRS_SNPP_SP | 41,837 |
-| VIIRS_NOAA20_SP | 47,587 |
-| **Total** | **98,815** |
-
-The demonstration includes global geographic visualization, harmonized records, H3 spatial indexing, and daily spatial aggregation.
-
-These figures describe the records returned for the selected date and products; they do not represent complete global observation coverage or continuous global monitoring.
-
-## 12. Future Development
-
-Potential development directions include:
-
-- Incremental data collection and recovery.
-- More comprehensive observation-coverage assessment.
-- Expanded satellite-product support.
-- Improved cross-sensor association methods.
-- More advanced temporal anomaly analysis.
-- Additional geographical and analytical capabilities.
-
-## 13. Licence
-
-This project is released under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-**QORVEX — NASA Space Apps Challenge 2026**

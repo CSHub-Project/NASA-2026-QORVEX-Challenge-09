@@ -1,0 +1,46 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Fyrora Evidence API",
+    "version": "0.12.0",
+    "description": "Static, versioned research evidence endpoints. Not a live incident API."
+  },
+  "servers": [
+    {
+      "url": ".",
+      "description": "Dashboard-relative static files"
+    }
+  ],
+  "paths": {
+    "/data/evidence-passport.json": {
+      "get": {
+        "summary": "Product readiness and claim provenance",
+        "responses": {
+          "200": {
+            "description": "Evidence Passport JSON"
+          }
+        }
+      }
+    },
+    "/data/day12_observation_evidence.geojson": {
+      "get": {
+        "summary": "Dual-sensor daily observation states",
+        "responses": {
+          "200": {
+            "description": "GeoJSON FeatureCollection"
+          }
+        }
+      }
+    },
+    "/data/day12_claim_registry.csv": {
+      "get": {
+        "summary": "Auditable claim registry",
+        "responses": {
+          "200": {
+            "description": "UTF-8 CSV"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+gate,passed
+complete_pairs,True
+checksums_complete,True
+sensor_balance,True
+day_night_balance,True
+valid_mask_codes,True
+explicit_not_observed,True
+clear_negative_semantics,True
+overall,True

@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Evidence-first exploration of harmonized MODIS and VIIRS active-fire observations.">
+    <meta name="theme-color" content="#f4f2ec">
+    <title>Fyrora — MODIS × VIIRS</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=1.9.4">
+    <link rel="stylesheet" href="styles.css?v=team-map-2">
+    <script src="vendor/leaflet/leaflet.js?v=1.9.4" defer></script>
+    <script src="app.js?v=team-map-2" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#explorer">Skip to explorer</a>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Fyrora home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>FYRORA <small>QORVEX · MODIS × VIIRS</small></span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#explorer" data-i18n="navExplore">Explore</a>
+        <a href="#sensor-lab" data-i18n="navSensorLab">Sensor lab</a>
+        <a href="#aoi-builder" data-i18n="navAoi">Build an AOI</a>
+        <a href="#europe" data-i18n="navEurope">Europe pilot</a>
+        <a href="#evidence" data-i18n="navEvidence">Evidence</a>
+        <a href="#method" data-i18n="navMethod">Method</a>
+      </nav>
+      <div class="header-actions">
+        <button class="judge-trigger" id="judge-trigger" type="button" data-i18n="judgeMode">Judge mode</button>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" data-i18n="darkMode">Dark mode</button>
+        <button class="language-toggle" id="language-toggle" type="button" aria-label="Switch language">فارسی</button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="challenge">NASA Space Apps 2026 · Research prototype</p>
+          <h1 id="hero-title" data-i18n="heroTitle">MODIS–VIIRS<br>hotspot harmonization.</h1>
+          <p class="hero-lede" data-i18n="heroLede">A reproducible method for comparing historical Aqua MODIS and S-NPP VIIRS hotspot counts—with unsupported days left explicitly unknown.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#explorer" data-i18n="exploreData">Open activity explorer</a>
+            <button class="button button-tour" id="hero-judge-trigger" type="button" data-i18n="startTour">Start 90-second judge tour</button>
+            <a class="button button-quiet" href="data/calendar.csv" download data-i18n="downloadDataset">Download calendar CSV</a>
+          </div>
+        </div>
+        <div class="orbit-card" id="study-map-stage" aria-label="Study regions diagram">
+          <div class="map-source"><span>NASA FIRMS</span><strong>SPATIOTEMPORAL VIEW</strong></div>
+          <canvas class="globe" id="study-map" role="img" aria-label="Real study windows projected on a rotating globe"></canvas>
+          <div class="map-time" aria-live="polite">
+            <span data-i18n="temporalSlice">Temporal slice</span>
+            <strong id="map-time-slice">—</strong>
+            <div class="time-rail" id="map-time-rail" aria-hidden="true">
+              <i></i><b>2017</b><b>2018</b><b>2019</b><b>2020</b>
+            </div>
+          </div>
+          <div class="map-readout">
+            <div><span data-i18n="activeWindow">Active window</span><strong id="map-active-name">—</strong></div>
+            <code id="map-active-bbox">—</code>
+          </div>
+          <p class="map-note" data-i18n="mapNote">Real study bounding boxes · not political boundaries</p>
+        </div>
+        <dl class="hero-stats" aria-label="Project scale">
+          <div><dt id="stat-observations">—</dt><dd data-i18n="observations">source observations</dd></div>
+          <div><dt id="stat-passes">—</dt><dd data-i18n="passes">matched satellite passes</dd></div>
+          <div><dt id="stat-years">—</dt><dd id="study-scope-label">years · study windows</dd></div>
+          <div><dt id="stat-improvement">—</dt><dd data-i18n="improvement">lower count WAPE on 2020 holdout</dd></div>
+        </dl>
+      </section>
+
+      <section class="explorer section-shell" id="explorer" aria-labelledby="explorer-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="coverageFirst">Coverage-aware activity record</p>
+            <h2 id="explorer-title" data-i18n="explorerTitle">Compare hotspot activity without treating missing support as zero.</h2>
+          </div>
+          <p data-i18n="explorerIntro">History uses Aqua MODIS counts; the held-out 2020 view uses VIIRS harmonized to MODIS-equivalent counts. Hatched cells mean no matched detection-derived pass. The point export cannot establish full satellite coverage or a fire-free day.</p>
+        </div>
+
+        <div class="control-panel" aria-label="Calendar controls">
+          <label><span data-i18n="region">Region</span><select id="region-select"></select></label>
+          <label><span data-i18n="year">Year</span><select id="year-select"></select></label>
+          <fieldset>
+            <legend data-i18n="overpass">Overpass</legend>
+            <div class="segmented">
+              <input type="radio" name="daynight" id="day-choice" value="D" checked>
+              <label for="day-choice" data-i18n="day">Day</label>
+              <input type="radio" name="daynight" id="night-choice" value="N">
+              <label for="night-choice" data-i18n="night">Night</label>
+            </div>
+          </fieldset>
+          <button id="download-filtered" class="button button-quiet" type="button" data-i18n="exportView">Export this view</button>
+        </div>
+
+        <div class="coverage-summary" aria-live="polite">
+          <div><span data-i18n="coverage">Matched-pass support</span><strong id="coverage-value">—</strong></div>
+          <div><span data-i18n="observedDays">Supported days</span><strong id="observed-value">—</strong></div>
+          <div><span data-i18n="peakDay">Peak observed day</span><strong id="peak-value">—</strong></div>
+          <div><span data-i18n="source">Series source</span><strong id="source-value">—</strong></div>
+        </div>
+
+        <div class="calendar-card">
+          <div class="calendar-toolbar">
+            <div>
+              <h3 id="calendar-title">—</h3>
+              <p id="calendar-subtitle">—</p>
+            </div>
+            <div class="legend" aria-label="Historical percentile legend">
+              <span data-percentile-legend data-i18n="low">Low</span>
+              <i class="q1" data-percentile-legend></i><i class="q2" data-percentile-legend></i><i class="q3" data-percentile-legend></i><i class="q4" data-percentile-legend></i><i class="q5" data-percentile-legend></i>
+              <span data-percentile-legend data-i18n="high">High</span>
+              <i class="unscored" data-history-legend hidden></i><span data-history-legend data-i18n="historicalCount" hidden>Historical count, no anomaly score</span>
+              <i class="missing"></i><span data-i18n="noCoverage">No matched pass</span>
+            </div>
+          </div>
+          <div class="calendar-scroll" tabindex="0" aria-label="Scrollable anomaly calendar">
+            <div id="calendar-grid" class="calendar-grid"></div>
+          </div>
+          <div id="day-detail" class="day-detail" aria-live="polite">
+            <p data-i18n="cellHint">Focus or point to a day to inspect its evidence.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sensor-lab section-shell" id="sensor-lab" aria-labelledby="sensor-lab-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="sensorLabEyebrow">Victoria 2024 · NASA FIRMS records</p>
+            <h2 id="sensor-lab-title" data-i18n="sensorLabTitle">Victoria multi-sensor comparison</h2>
+          </div>
+          <p data-i18n="sensorLabIntro">A filtered 2024 Victoria pilot compares MODIS, S-NPP VIIRS and NOAA-20 VIIRS records, then maps the 100 most active H3 cells. It adds multi-sensor context without pretending that co-occurrence proves the same fire.</p>
+        </div>
+        <div class="sensor-kpis" aria-live="polite">
+          <article><span data-i18n="recordedDetections">Recorded detections</span><strong id="sensor-total">—</strong></article>
+          <article><span data-i18n="activeH3">Active H3 cells · res 7</span><strong id="sensor-cells">—</strong></article>
+          <article><span data-i18n="peakH3">Peak records in one cell</span><strong id="sensor-peak">—</strong></article>
+        </div>
+        <article class="victoria-explorer" aria-labelledby="victoria-map-title">
+          <div class="sensor-card-head">
+            <div><p class="card-kicker" data-i18n="pointExplorerEyebrow">Interactive point explorer · 2024</p><h3 id="victoria-map-title" data-i18n="pointExplorerTitle">Victoria detections by UTC date</h3></div>
+            <span class="live-badge" data-i18n="nasaStandardData">NASA STANDARD DATA</span>
+          </div>
+          <div class="victoria-controls">
+            <label><span data-i18n="mapDate">UTC date</span><input type="date" id="victoria-date" min="2024-01-01" max="2024-12-31" value="2024-04-22"></label>
+            <label><span data-i18n="overpass">Overpass</span><select id="victoria-daynight"><option value="all" data-i18n="allOverpasses">All</option><option value="D" data-i18n="day">Day</option><option value="N" data-i18n="night">Night</option></select></label>
+            <fieldset><legend data-i18n="products">Products</legend><label><input name="victoria-product" type="checkbox" value="M" checked> MODIS</label><label><input name="victoria-product" type="checkbox" value="N" checked> NOAA-20</label><label><input name="victoria-product" type="checkbox" value="S" checked> S-NPP</label></fieldset>
+            <div class="playback-controls"><button type="button" id="victoria-prev" aria-label="Previous active date">‹</button><button type="button" id="victoria-play" data-i18n="playDates">Play</button><button type="button" id="victoria-next" aria-label="Next active date">›</button></div>
+          </div>
+          <input id="victoria-date-range" class="victoria-date-range" type="range" min="0" max="365" value="112" aria-label="Day of year">
+          <div class="victoria-map-wrap">
+            <div id="victoria-map" role="application" aria-label="OpenStreetMap with FIRMS detections in the Victoria study window"></div>
+            <div class="victoria-map-stats" aria-live="polite"><div><span data-i18n="visiblePoints">Visible records</span><strong id="victoria-visible">—</strong></div><div><span data-i18n="visibleFrp">Recorded FRP</span><strong id="victoria-frp">—</strong></div><div><span data-i18n="utcWindow">UTC acquisition window</span><strong id="victoria-time">—</strong></div></div>
+          </div>
+          <div id="victoria-map-status" class="sensor-detail" data-i18n="mapLoading">Loading the validated point archive…</div>
+          <p class="sensor-note" data-i18n="pointMapBoundary">The map uses the rectangular Victoria study window, not a political boundary. Each dot is one FIRMS detection record; overlapping dots and repeat satellite visits are not unique fires.</p>
+        </article>
+        <div class="sensor-grid">
+          <article class="sensor-card sensor-map-card">
+            <div class="sensor-card-head"><div><p class="card-kicker" data-i18n="spatialConcentration">Spatial concentration</p><h3 data-i18n="victoriaMap">Victoria · top 100 H3 cells</h3></div><span class="live-badge" data-i18n="realData">REAL DATA</span></div>
+            <canvas id="sensor-map" role="img" aria-label="Top H3 detection cells in Victoria"></canvas>
+            <p id="sensor-cell-detail" class="sensor-detail" data-i18n="mapCellHint">Point to a hexagon to inspect its exact H3 cell and record count.</p>
+          </article>
+          <article class="sensor-card">
+            <p class="card-kicker" data-i18n="sensorContribution">Sensor contribution</p>
+            <h3 data-i18n="productMix">Filtered product mix</h3>
+            <div id="sensor-products" class="sensor-products"></div>
+            <p class="sensor-note" data-i18n="sensorResolutionNote">The higher VIIRS share is expected from its finer spatial resolution and detection capability; it is not direct evidence of more fire.</p>
+          </article>
+          <article class="sensor-card sensor-monthly-card">
+            <p class="card-kicker" data-i18n="seasonalSignal">Seasonal signal</p>
+            <h3 data-i18n="monthlyBySensor">Monthly records by sensor</h3>
+            <div id="sensor-monthly" class="sensor-monthly" role="img" aria-label="Monthly detections by sensor"></div>
+          </article>
+          <article class="sensor-card">
+            <p class="card-kicker" data-i18n="cellDayAgreement">Cell-day agreement</p>
+            <h3 data-i18n="pairwiseOverlap">Pairwise H3 overlap</h3>
+            <div id="sensor-overlap" class="sensor-overlap"></div>
+          </article>
+        </div>
+        <div class="sensor-boundary">
+          <p><strong data-i18n="interpretationBoundary">Interpretation boundary.</strong> <span data-i18n="sensorBoundary">Descriptive filtered FIRMS records only—not Fyrora harmonized output, a full coverage mask, anomaly score or unique-fire count. Missing observations are never filled with zero.</span></p>
+          <div class="sensor-downloads">
+            <a href="data/qorvex-victoria-monthly.csv" download data-i18n="downloadMonthly">Monthly CSV</a>
+            <a href="data/qorvex-victoria-top-h3.csv" download data-i18n="downloadH3">H3 CSV</a>
+            <a href="data/qorvex-victoria-sensor-overlap.csv" download data-i18n="downloadOverlap">Overlap CSV</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="aoi-builder section-shell" id="aoi-builder" aria-labelledby="aoi-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="aoiEyebrow">Interactive area of interest</p>
+            <h2 id="aoi-title" data-i18n="aoiTitle">Analyze a place and time within Western Iberia.</h2>
+          </div>
+          <p data-i18n="aoiIntro">Enter a bounding box inside the Western Iberia evidence window, choose a UTC date range and compare harmonized activity with the median of matching calendar days in other available years.</p>
+        </div>
+
+        <div class="aoi-layout">
+          <form class="aoi-form" id="aoi-form">
+            <div class="aoi-presets" role="group" aria-label="Area presets">
+              <button type="button" class="button button-quiet" data-aoi-preset="full" data-i18n="aoiFull">Western Iberia</button>
+              <button type="button" class="button button-quiet" data-aoi-preset="portugal" data-i18n="aoiPortugal">Portugal focus</button>
+              <button type="button" class="button button-quiet" data-aoi-preset="galicia" data-i18n="aoiGalicia">Galicia focus</button>
+            </div>
+            <div class="coordinate-grid">
+              <label><span data-i18n="aoiWest">West longitude</span><input id="aoi-west" type="number" min="-9.5" max="-5.5" step="0.1" value="-9.5" required></label>
+              <label><span data-i18n="aoiEast">East longitude</span><input id="aoi-east" type="number" min="-9.5" max="-5.5" step="0.1" value="-5.5" required></label>
+              <label><span data-i18n="aoiSouth">South latitude</span><input id="aoi-south" type="number" min="37" max="43" step="0.1" value="37" required></label>
+              <label><span data-i18n="aoiNorth">North latitude</span><input id="aoi-north" type="number" min="37" max="43" step="0.1" value="43" required></label>
+            </div>
+            <div class="date-grid">
+              <label><span data-i18n="aoiStart">Start date · UTC</span><input id="aoi-start" type="date" min="2017-01-01" max="2020-12-31" value="2020-07-01" required></label>
+              <label><span data-i18n="aoiEnd">End date · UTC</span><input id="aoi-end" type="date" min="2017-01-01" max="2020-12-31" value="2020-09-30" required></label>
+              <label><span data-i18n="overpass">Overpass</span><select id="aoi-daynight"><option value="D" data-i18n="day">Day</option><option value="N" data-i18n="night">Night</option></select></label>
+            </div>
+            <p class="form-boundary" data-i18n="aoiBoundary">Evidence scope: 2017–2020 and the displayed Western Iberia rectangle. Coordinates outside this window are rejected. This prototype never sends your NASA key to the browser.</p>
+            <div class="aoi-actions">
+              <button class="button button-primary" type="submit" data-i18n="aoiRun">Analyze this area</button>
+              <button class="button button-quiet" id="aoi-download" type="button" data-i18n="aoiExport" disabled>Download AOI CSV</button>
+            </div>
+            <p class="form-error" id="aoi-error" role="alert" aria-live="assertive"></p>
+          </form>
+
+          <div class="aoi-map-card">
+            <div id="aoi-map" class="aoi-map" role="img" aria-label="Selected bounding box within Western Iberia"></div>
+            <p data-i18n="aoiMapNote">The bright rectangle is your selected AOI; the outer frame is the available evidence window.</p>
+          </div>
+        </div>
+
+        <div class="aoi-results" id="aoi-results" aria-live="polite">
+          <article><span data-i18n="aoiActivity">Harmonized activity</span><strong id="aoi-total">—</strong></article>
+          <article><span data-i18n="aoiSupported">Supported days</span><strong id="aoi-supported">—</strong></article>
+          <article><span data-i18n="aoiMedian">Historical median expectation</span><strong id="aoi-median">—</strong></article>
+          <article><span data-i18n="aoiAnomaly">Anomaly vs median</span><strong id="aoi-anomaly">—</strong></article>
+        </div>
+        <div class="aoi-chart-card">
+          <div class="calendar-toolbar">
+            <div><h3 data-i18n="aoiSeries">Daily activity in the selected AOI</h3><p id="aoi-summary" data-i18n="aoiHint">Run the analysis to create a coverage-aware daily series.</p></div>
+            <div class="legend"><i class="aoi-observed"></i><span data-i18n="aoiObserved">Supported cell-days</span><i class="missing"></i><span data-i18n="aoiUnknown">No matched-pass support</span></div>
+          </div>
+          <div class="aoi-chart-scroll"><div id="aoi-chart" class="aoi-chart"></div></div>
+        </div>
+      </section>
+
+      <section class="europe section-shell" id="europe" aria-labelledby="europe-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="europeEyebrow">European field pilot</p>
+            <h2 id="europe-title" data-i18n="europeTitle">Western Iberia validation record.</h2>
+          </div>
+          <p data-i18n="europeIntro">A rectangular study window across Portugal and western Spain tests the historical bridge in a European fire regime. The 2021 check was specified before its data was scored, with no retraining or selection on 2020–21.</p>
+        </div>
+        <div class="europe-grid">
+          <article class="metric-card">
+            <div class="card-kicker"><span data-i18n="europeHoldout">2020 European holdout</span><strong id="europe-test-cells">—</strong></div>
+            <h3 data-i18n="europeWape">Count WAPE, shared cell-passes</h3>
+            <div id="europe-holdout-bars" class="comparison-bars"></div>
+          </article>
+          <article class="metric-card">
+            <div class="card-kicker"><span data-i18n="europeTransfer">Europe entirely absent from training</span><strong id="europe-coverage">—</strong></div>
+            <h3 data-i18n="europeTransferTitle">Unseen-region transfer</h3>
+            <div id="europe-transfer-bars" class="comparison-bars"></div>
+          </article>
+          <article class="metric-card europe-independent europe-year-check">
+            <div class="card-kicker"><span data-i18n="europeIndependent">Independent 2021 year check</span><strong id="europe-2021-cells">—</strong></div>
+            <h3 data-i18n="europeIndependentTitle">Frozen method, later European year</h3>
+            <div id="europe-2021-bars" class="comparison-bars"></div>
+            <p class="annotation" id="europe-2021-note">—</p>
+            <a href="data/independent_2021_metrics.csv" download data-i18n="downloadIndependent">Download 2021 test metrics</a>
+          </article>
+          <article class="metric-card europe-independent europe-year-check">
+            <div class="card-kicker"><span data-i18n="europeLocked2022">Precommitted 2022 check</span><strong id="europe-2022-cells">—</strong></div>
+            <h3 data-i18n="europeLocked2022Title">The incumbent remains best on a later year</h3>
+            <div id="europe-2022-bars" class="comparison-bars"></div>
+            <p class="annotation" id="europe-2022-note">—</p>
+            <a href="data/day7_2022_locked_test.csv" download data-i18n="downloadLocked2022">Download all 2022 candidate results</a>
+          </article>
+          <article class="metric-card europe-independent">
+            <div class="card-kicker"><span data-i18n="europeLocked2023">Locked 2023 geometry check</span><strong id="europe-2023-cells">—</strong></div>
+            <h3 data-i18n="europeLocked2023Title">A small model gain did not pass the uncertainty gate</h3>
+            <div id="europe-2023-bars" class="comparison-bars"></div>
+            <p class="annotation" id="europe-2023-note">—</p>
+            <a href="data/geometry_2023_locked_test.csv" download data-i18n="downloadLocked2023">Download 2023 model metrics</a>
+            <a href="data/geometry_2023_interval_coverage.csv" download data-i18n="downloadIntervals2023">Download interval coverage</a>
+          </article>
+          <article class="metric-card europe-independent">
+            <div class="card-kicker"><span data-i18n="supportGap2022">2022 sensor support gap</span><strong id="europe-support-gap">—</strong></div>
+            <h3 data-i18n="supportGapTitle">A VIIRS-positive-cell map misses some MODIS-positive cells</h3>
+            <p class="annotation" id="europe-support-note">—</p>
+            <a href="data/detection_support_audit.csv" download data-i18n="downloadSupportAudit">Download seven-year support audit</a>
+          </article>
+        </div>
+        <div class="europe-actions">
+          <button class="button button-primary" id="open-europe" type="button" data-i18n="openEurope">Explore Western Iberia calendar</button>
+          <a class="button button-quiet" href="data/western_iberia_calendar.csv" download data-i18n="downloadEurope">Download Europe pilot CSV</a>
+          <p data-i18n="europeBoundary">Historical hotspot activity for planning and research; not burned area, live incident detection, or a safety alert. EFFIS remains the European operational reference.</p>
+          <a href="https://forest-fire.emergency.copernicus.eu/" target="_blank" rel="noreferrer" data-i18n="openEffis">Open Copernicus EFFIS ↗</a>
+        </div>
+      </section>
+
+      <section class="europe section-shell" id="independent-transfer" aria-labelledby="independent-transfer-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="day9Eyebrow">Locked 2024 external transfer</p>
+            <h2 id="independent-transfer-title" data-i18n="day9Title">Locked 2024 transfer test.</h2>
+          </div>
+          <p data-i18n="day9Intro">The 2017–19 model was frozen before opening 2024 data from Southern African savanna, Eastern Siberian boreal forest and Southeast Australia.</p>
+        </div>
+        <div class="europe-grid">
+          <article class="metric-card metric-card-wide">
+            <div class="card-kicker"><span data-i18n="day9Pooled">Pooled count WAPE</span><strong id="day9-gate">—</strong></div>
+            <h3 data-i18n="day9PooledTitle">Independent spatial-temporal transfer</h3>
+            <div id="day9-overall-bars" class="comparison-bars"></div>
+            <p class="annotation" id="day9-bootstrap">—</p>
+          </article>
+          <article class="metric-card">
+            <div class="card-kicker"><span data-i18n="day9Africa">Southern African savanna</span><strong id="day9-africa-cells">—</strong></div>
+            <div id="day9-africa-bars" class="comparison-bars"></div>
+          </article>
+          <article class="metric-card">
+            <div class="card-kicker"><span data-i18n="day9Siberia">Eastern Siberian boreal</span><strong id="day9-siberia-cells">—</strong></div>
+            <div id="day9-siberia-bars" class="comparison-bars"></div>
+          </article>
+          <article class="metric-card">
+            <div class="card-kicker"><span data-i18n="day9Australia">Southeast Australia</span><strong id="day9-australia-cells">—</strong></div>
+            <div id="day9-australia-bars" class="comparison-bars"></div>
+          </article>
+        </div>
+        <div class="europe-actions">
+          <a class="button button-quiet" href="data/day9_independent_transfer_metrics.csv" download data-i18n="day9Download">Download complete 2024 metrics</a>
+          <p data-i18n="day9Boundary">The locked gate passed, but WAPE remains above 1 in two regions. This supports transfer beyond the original windows; it does not establish global or operational accuracy.</p>
+        </div>
+      </section>
+
+      <section class="europe section-shell" id="external-outcome" aria-labelledby="external-outcome-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="day10Eyebrow">Frozen 2023 EFFIS outcome check</p>
+            <h2 id="external-outcome-title" data-i18n="day10Title">EFFIS outcome test: the gate did not pass.</h2>
+          </div>
+          <p data-i18n="day10Intro">The already locked Western Iberia output was linked to EFFIS mapped burned-area events without refitting or choosing a better-looking method.</p>
+        </div>
+        <div class="europe-grid">
+          <article class="metric-card metric-card-wide">
+            <div class="card-kicker"><span data-i18n="day10Association">Event area association · Spearman ρ</span><strong id="day10-gate">—</strong></div>
+            <h3 data-i18n="day10AssociationTitle">Harmonized activity versus mapped burned area</h3>
+            <div id="day10-bars" class="comparison-bars"></div>
+            <p class="annotation" id="day10-bootstrap">—</p>
+          </article>
+          <article class="metric-card">
+            <div class="card-kicker"><span data-i18n="day10Events">Eligible EFFIS events</span><strong id="day10-events">—</strong></div>
+            <h3 data-i18n="day10NullTitle">Calendar-shift null test</h3>
+            <p class="annotation" id="day10-permutation">—</p>
+          </article>
+          <article class="metric-card caution-card">
+            <div class="card-kicker"><span data-i18n="honestBoundary">Honest boundary</span><strong data-i18n="day10SemiIndependent">Semi-independent</strong></div>
+            <h3 data-i18n="day10BoundaryTitle">Not ground truth</h3>
+            <p data-i18n="day10Boundary">The temporal signal beat the shifted-calendar null, but ρ missed the frozen 0.30 gate and its bootstrap interval crossed zero. EFFIS also uses satellite evidence, so this is not independent field validation.</p>
+          </article>
+        </div>
+        <div class="europe-actions">
+          <a class="button button-quiet" href="data/day10_external_metrics.csv" download data-i18n="day10Download">Download EFFIS association metrics</a>
+        </div>
+      </section>
+
+      <section class="europe section-shell" id="evidence-passport" aria-labelledby="passport-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="passportEyebrow">Evidence Passport · Day 12</p>
+            <h2 id="passport-title" data-i18n="passportTitle">Claim registry and evidence boundaries.</h2>
+          </div>
+          <p data-i18n="passportIntro">A machine-readable claim registry links each statement to scope, limitation, source artifact and SHA-256. Grades describe provenance, not an invented probability.</p>
+        </div>
+        <div class="europe-grid passport-grid">
+          <article class="metric-card">
+            <div class="card-kicker"><span data-i18n="passportSwath">Full-swath audit</span><strong id="passport-swath-gate">—</strong></div>
+            <h3 data-i18n="passportSwathTitle">Direct observation support</h3>
+            <p class="annotation" id="passport-swath-note">—</p>
+          </article>
+          <article class="metric-card">
+            <div class="card-kicker"><span data-i18n="passportClaims">Audited claims</span><strong id="passport-claims">—</strong></div>
+            <h3 data-i18n="passportClaimsTitle">Supported, failed and bounded</h3>
+            <p class="annotation" id="passport-claims-note">—</p>
+          </article>
+          <article class="metric-card caution-card">
+            <div class="card-kicker"><span data-i18n="passportStage">Release stage</span><strong id="passport-stage">—</strong></div>
+            <h3 data-i18n="passportStageTitle">Research preview—not an emergency alert</h3>
+            <p class="annotation" data-i18n="passportBoundary">The external-outcome gate failed, so operational readiness is deliberately false. This honesty is enforced in code and tests.</p>
+          </article>
+        </div>
+        <div class="europe-actions">
+          <a class="button button-primary" href="data/evidence-passport.json" download data-i18n="passportDownload">Download Evidence Passport</a>
+          <a class="button button-quiet" href="data/day12_observation_evidence.geojson" download data-i18n="passportGeojson">Download observation GeoJSON</a>
+          <a class="button button-quiet" href="data/openapi.json" download data-i18n="passportOpenapi">OpenAPI contract</a>
+        </div>
+      </section>
+
+      <section class="evidence section-shell" id="evidence" aria-labelledby="evidence-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="untouchedTest">2020 temporal holdout</p>
+            <h2 id="evidence-title" data-i18n="evidenceTitle">Temporal and spatial validation.</h2>
+          </div>
+          <p data-i18n="evidenceIntro">The original four-region score excludes 2020 from fitting and selection; the separately specified 2021 European check excludes both 2020 and 2021. Spatial transfer holds out one entire region at a time.</p>
+        </div>
+        <div class="evidence-grid">
+          <article class="metric-card metric-card-wide">
+            <div class="card-kicker"><span data-i18n="primaryMetric">Primary metric · count WAPE</span><strong id="metric-improvement">—</strong></div>
+            <h3 data-i18n="temporalHoldout">Temporal holdout</h3>
+            <div id="overall-bars" class="comparison-bars"></div>
+            <p class="annotation" id="bootstrap-note">—</p>
+          </article>
+          <article class="metric-card">
+            <div class="card-kicker"><span data-i18n="rankPreservation">Rank preservation</span><strong id="spearman-value">—</strong></div>
+            <h3 data-i18n="spearmanTitle">Spearman correlation</h3>
+            <p data-i18n="spearmanCopy">Higher means the model better preserves where activity is relatively greater across shared grid cells.</p>
+          </article>
+          <article class="metric-card metric-card-wide">
+            <div class="card-kicker"><span data-i18n="unseenGeography">Entirely unseen geography</span><strong id="transfer-summary">—</strong></div>
+            <h3 data-i18n="transferTitle">Leave-one-region-out transfer</h3>
+            <div id="transfer-bars" class="transfer-bars"></div>
+          </article>
+          <article class="metric-card caution-card">
+            <div class="card-kicker"><span data-i18n="honestBoundary">Honest boundary</span><strong data-i18n="experimental">Experimental</strong></div>
+            <h3 data-i18n="frpTitle">FRP is not operational</h3>
+            <p data-i18n="frpCopy">Overall FRP error improved, but subgroup failures remain. Fyrora does not present FRP as a deployable harmonized product.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="method section-shell" id="method" aria-labelledby="method-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="traceable">Traceable by design</p>
+            <h2 id="method-title" data-i18n="methodTitle">Processing and validation method.</h2>
+          </div>
+        </div>
+        <ol class="method-flow">
+          <li><span>01</span><h3 data-i18n="methodOneTitle">Match detection passes</h3><p data-i18n="methodOneCopy">Pair detection-derived Aqua MODIS and S-NPP VIIRS passes by region, date, day/night and time tolerance.</p></li>
+          <li><span>02</span><h3 data-i18n="methodTwoTitle">Share the ground</h3><p data-i18n="methodTwoCopy">Aggregate both sensors to the same 10 km equal-area cells before comparison.</p></li>
+          <li><span>03</span><h3 data-i18n="methodThreeTitle">Guard the future</h3><p data-i18n="methodThreeCopy">Fit on 2017–18 and select on 2019; exclude 2020 from both steps and report iteration history.</p></li>
+          <li><span>04</span><h3 data-i18n="methodFourTitle">Show uncertainty</h3><p data-i18n="methodFourCopy">Bootstrap by date, report subgroups, preserve null coverage, and publish machine-readable evidence.</p></li>
+        </ol>
+        <div class="architecture" id="architecture" aria-labelledby="architecture-title">
+          <div class="architecture-heading">
+            <p class="eyebrow" data-i18n="architectureEyebrow">Reproducible architecture</p>
+            <h3 id="architecture-title" data-i18n="architectureTitle">Data and processing trace</h3>
+          </div>
+          <ol class="architecture-flow">
+            <li><span>01</span><strong data-i18n="architectureOne">NASA FIRMS standard data</strong><small data-i18n="architectureOneDetail">Aqua MODIS + S-NPP VIIRS</small></li>
+            <li><span>02</span><strong data-i18n="architectureTwo">Detection-pass match</strong><small data-i18n="architectureTwoDetail">UTC, day/night, ≤60 min</small></li>
+            <li><span>03</span><strong data-i18n="architectureThree">Shared 10 km ground grid</strong><small data-i18n="architectureThreeDetail">Equal-area cell-pass pairs</small></li>
+            <li><span>04</span><strong data-i18n="architectureFour">Guarded harmonization</strong><small data-i18n="architectureFourDetail">Fit 2017–18 · select 2019 · test 2020</small></li>
+            <li><span>05</span><strong data-i18n="architectureFive">Coverage-aware product</strong><small data-i18n="architectureFiveDetail">Calendar · CSV · hashes</small></li>
+          </ol>
+        </div>
+        <div class="provenance-card">
+          <div>
+            <h3 data-i18n="provenanceTitle">Audit the exact dashboard inputs</h3>
+            <p data-i18n="provenanceCopy">Every deployed number is generated from committed tables. SHA-256 hashes make the data handoff verifiable.</p>
+          </div>
+          <div class="provenance-links">
+            <a class="button button-primary" href="data/manifest.json" data-i18n="openManifest">Open manifest</a>
+            <a class="button button-quiet" href="data/dashboard.json" data-i18n="openApi">Open JSON data endpoint</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="judge-brief section-shell" id="judge-brief" aria-labelledby="judge-brief-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="judgeEyebrow">Project evidence index</p>
+            <h2 id="judge-brief-title" data-i18n="judgeTitle">Evidence index for judges</h2>
+          </div>
+          <p data-i18n="judgeIntro">Each judging criterion links to evidence in the application.</p>
+        </div>
+        <div class="judge-grid">
+          <article><span>01</span><h3 data-i18n="impactTitle">Impact</h3><p data-i18n="impactCopy">A consistent historical view helps land managers recognize seasonal patterns and unusual periods without confusing sensor change for fire change.</p><a href="#explorer" data-i18n="seeCalendar">See calendar →</a></article>
+          <article><span>02</span><h3 data-i18n="creativityTitle">Creativity</h3><p data-i18n="creativityCopy">The calendar marks unsupported matched-detection days explicitly instead of silently converting them into “no fire.”</p><a href="#explorer" data-i18n="seeNoData">Inspect no-data →</a></article>
+          <article><span>03</span><h3 data-i18n="validityTitle">Validity</h3><p data-i18n="validityCopy">Leakage-safe year holdout, date-block bootstrap and leave-one-region-out transfer make the claim falsifiable.</p><a href="#evidence" data-i18n="seeEvidence">See evidence →</a></article>
+          <article><span>04</span><h3 data-i18n="relevanceTitle">Relevance</h3><p data-i18n="relevanceCopy">A user can enter coordinates and a UTC date range, compare activity with a historical median and export the result without exposing an API key.</p><a href="#aoi-builder" data-i18n="seeAoi">Try the AOI builder →</a></article>
+          <article><span>05</span><h3 data-i18n="presentationTitle">Presentation</h3><p data-i18n="presentationCopy">Bilingual storytelling, keyboard access, color-plus-pattern encoding and an auditable data endpoint keep the science legible.</p><button class="text-button" id="brief-judge-trigger" type="button" data-i18n="startTourShort">Run judge tour →</button></article>
+        </div>
+        <div class="source-strip">
+          <strong data-i18n="officialSources">Official sources</strong>
+          <a href="https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/" target="_blank" rel="noreferrer" data-i18n="challengeBrief">Challenge brief ↗</a>
+          <a href="https://www.earthdata.nasa.gov/data/tools/firms" target="_blank" rel="noreferrer">NASA Earthdata FIRMS ↗</a>
+          <a href="https://viirsland.gsfc.nasa.gov/Products/NASA/FireESDR.html" target="_blank" rel="noreferrer">NASA VIIRS Land ↗</a>
+          <a href="https://forest-fire.emergency.copernicus.eu/" target="_blank" rel="noreferrer">Copernicus EFFIS ↗</a>
+          <a href="https://github.com/CSHub-Project/NASA-2026-QORVEX-Challenge-09" target="_blank" rel="noreferrer">Source code ↗</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>FYRORA</span></div>
+      <p data-i18n="footerCopy">Open-data prototype · Not an emergency alerting system</p>
+      <a href="https://github.com/CSHub-Project/NASA-2026-QORVEX-Challenge-09" rel="noreferrer">GitHub ↗</a>
+    </footer>
+    <aside class="judge-tour" id="judge-tour" role="dialog" aria-modal="false" aria-labelledby="judge-tour-title" hidden>
+      <div class="tour-progress"><span id="tour-progress-label">1 / 5</span><div id="tour-progress-dots" aria-hidden="true"></div></div>
+      <p class="eyebrow" id="judge-tour-kicker">Judge tour</p>
+      <h2 id="judge-tour-title">—</h2>
+      <p id="judge-tour-copy">—</p>
+      <p class="tour-proof"><strong data-i18n="visibleProof">Visible proof:</strong> <span id="judge-tour-proof">—</span></p>
+      <div class="tour-actions">
+        <button class="button button-quiet" id="tour-close" type="button" data-i18n="closeTour">Close</button>
+        <button class="button button-quiet" id="tour-back" type="button" data-i18n="back">Back</button>
+        <button class="button button-primary" id="tour-next" type="button" data-i18n="next">Next</button>
+      </div>
+    </aside>
+    <noscript><p class="noscript">Fyrora needs JavaScript to render the interactive calendar. The CSV remains available above.</p></noscript>
+  </body>
+</html>

@@ -1,0 +1,2 @@
+minimum_event_support,harmonized_spearman_at_least_0_3,no_material_loss_vs_viirs,bootstrap_ci_lower_above_zero,permutation_p_at_most_0_05,external_outcome_gate_passed,eligible_events,selected_method
+True,False,True,False,True,False,201,geometry_aware_prediction

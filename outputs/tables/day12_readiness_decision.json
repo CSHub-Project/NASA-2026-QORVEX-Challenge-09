@@ -1,0 +1,11 @@
+{
+  "operational_ready": false,
+  "release_stage": "research_preview",
+  "blocking_claims": [
+    "external_outcome",
+    "operational_readiness"
+  ],
+  "all_claims_have_hash": true,
+  "geojson_features": 2340,
+  "passed": true
+}

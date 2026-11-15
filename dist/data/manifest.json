@@ -1,0 +1,282 @@
+{
+  "schemaVersion": 1,
+  "generatedFrom": [
+    {
+      "path": "outputs/tables/day4_calendar_ready_2017_2020.csv",
+      "sha256": "696dc1d3ad2587852784050d86bb89c13c19486f09d03034916dbe9e81419b6d"
+    },
+    {
+      "path": "outputs/tables/day4_year_holdout_metrics.csv",
+      "sha256": "1eceb49bc157625d4e90540fae67e0f4be76ed623daee4e8f6f9255ea73f7c42"
+    },
+    {
+      "path": "outputs/tables/day4_year_holdout_bootstrap.csv",
+      "sha256": "2613d91fb535affbc6922dfe7de9065e99dd58683ba82db84f20b346e4c2443a"
+    },
+    {
+      "path": "outputs/tables/day4_spatial_transfer_metrics.csv",
+      "sha256": "a8eb1a87c2451a8525cc77919f4212e6abaad6dc847f473fee899e986cc8d6fb"
+    },
+    {
+      "path": "outputs/tables/day4_source_inventory.csv",
+      "sha256": "c1d63daa32b184341372eaa062858f0675eb3bcb7a641bda0655a807033fd622"
+    },
+    {
+      "path": "outputs/tables/day4_pass_matches.csv",
+      "sha256": "ddde15c99c7a11b8041917b57fd20e6082b0465f6cb9cf7faff8d516c9ccedaa"
+    },
+    {
+      "path": "outputs/tables/firms_raw_manifest_2017_2020.csv",
+      "sha256": "3e0b08655802b438ecc2d42d415ca8c09819f4184b9e19e86930f4528a340ccc"
+    },
+    {
+      "path": "configs/regions.json",
+      "sha256": "859df9aaf0137057d9cccbe8f70bb334370cb6a0c744a33574c20baadd50dfb0"
+    },
+    {
+      "path": "site/data/ne_110m_land.geojson",
+      "sha256": "9e0729ee253ca7d7a5c4ae9395fb1902264c5377c52e224d13dd85010e2835d9"
+    },
+    {
+      "path": "site/fonts/Vazirmatn.woff2",
+      "sha256": "4e3fa217d38fdafc1fea4414ceb58ca5e662cf0ab5fa735a8c8c20e8b42cad92"
+    },
+    {
+      "path": "site/fonts/OFL.txt",
+      "sha256": "17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31"
+    },
+    {
+      "path": "outputs/tables/independent_2021_western_iberia_metrics.csv",
+      "sha256": "18581e9a869acf090bad069d351c2466130e6488457954a9712ae57d21de7f07"
+    },
+    {
+      "path": "outputs/tables/independent_2021_western_iberia_bootstrap.csv",
+      "sha256": "365a8b10f542ef3e6a266e479a16580ce9f702aa9c28118fd84b325188cbd928"
+    },
+    {
+      "path": "outputs/tables/independent_2021_western_iberia_pass_matches.csv",
+      "sha256": "e5e85c48d7cba6bb1f2eb7cb2a2ba55ff096dc1aa3d4428b3ad557f2e557cc3a"
+    },
+    {
+      "path": "outputs/tables/firms_raw_manifest_2021_western_iberia.csv",
+      "sha256": "d00b52094caf4286c3b6cf6f71585708be2caec98f630d4232ba6c0f82f9af9d"
+    },
+    {
+      "path": "outputs/tables/day7_2022_locked_test.csv",
+      "sha256": "2e3e5e5968585cde9785de7e4e3ffe346652ddd0cdbbc59ac8b4a5b53b83d918"
+    },
+    {
+      "path": "outputs/tables/day7_2019_candidate_selection.csv",
+      "sha256": "c6e18e03bc0b42a480023b531ec388c565df1fa1e585e9fe2c1cafdbe6dafd6c"
+    },
+    {
+      "path": "outputs/tables/day7_2022_candidate_bootstrap.csv",
+      "sha256": "a139663344f956e448d80a426be833654537d67b65f7c57aecee2313242aa85a"
+    },
+    {
+      "path": "outputs/tables/day7_2022_western_iberia_pass_matches.csv",
+      "sha256": "a6cdd6e79b6fab5c6491ff871dc3f3520ed8214a3dbf52e2efb149f322b6d054"
+    },
+    {
+      "path": "outputs/tables/firms_raw_manifest_2022_western_iberia.csv",
+      "sha256": "5aa3b2b5950e7bb2cd7837f7dae425d9aeb9aa754a7971d4d1e474929833ad89"
+    },
+    {
+      "path": "outputs/tables/detection_support_audit_2017_2023.csv",
+      "sha256": "1d4d884ef18dc9c384235e4fb2966478ea4f0dbba4cb32cb506123163632a402"
+    },
+    {
+      "path": "outputs/tables/geometry_2023_locked_test.csv",
+      "sha256": "7300517bf1665e9a96bbaf65f47ea5600a2ef24f6b8a34b1fc1527e7fabdd588"
+    },
+    {
+      "path": "outputs/tables/geometry_2019_selection.csv",
+      "sha256": "5a82802a19524a59c9ff230ead1332afe62e567a5e9cb3803f5cf73500aef411"
+    },
+    {
+      "path": "outputs/tables/geometry_2023_bootstrap.csv",
+      "sha256": "cf6c37f6e58374777eeb2c793b2944b326beb816ca4b37a512ddc9fa613e4b3a"
+    },
+    {
+      "path": "outputs/tables/geometry_2023_interval_coverage.csv",
+      "sha256": "4d9ebc92b1c991ec0548a17c35e2064553cd52209d43f42161fab51d0319c6e7"
+    },
+    {
+      "path": "outputs/tables/geometry_2023_cell_pass_predictions.csv",
+      "sha256": "b21e629a8202f306731265ba6b6cf78a66dbea97c41d49fb77c233099abf54ed"
+    },
+    {
+      "path": "outputs/tables/geometry_2023_pass_matches.csv",
+      "sha256": "6f89748bea833ba67b80308262e5c9b7b69343871a30ae52458ca3d4be0f0d70"
+    },
+    {
+      "path": "outputs/tables/firms_raw_manifest_2023_western_iberia.csv",
+      "sha256": "dcc19d49dc36b440d15020d8d20461ba9b83e36e0495fd65bc6a5af760cb7f8e"
+    },
+    {
+      "path": "outputs/tables/day9_independent_transfer_metrics.csv",
+      "sha256": "f59207d12119fd3dbfb93783df56f1d8327c6cc8dc8acc3dc5dd99aa05a61c6e"
+    },
+    {
+      "path": "outputs/tables/day9_independent_transfer_bootstrap.csv",
+      "sha256": "c9c3500f19507a06e82a71a252dd37f59a7663fb0a57d8a3663e7613ab0f9c38"
+    },
+    {
+      "path": "outputs/tables/day9_independent_transfer_decision.csv",
+      "sha256": "3500d42c2cf5b7ee51e4bdea0460cae49f5a03a8bf16ca7896371c1b684b17c7"
+    },
+    {
+      "path": "outputs/tables/day9_independent_transfer_pass_matches.csv",
+      "sha256": "7385dd933ff2cae04015bf20166e948b83fb09ee2914f02c13c35e2351b8cb0a"
+    },
+    {
+      "path": "outputs/tables/day9_firms_raw_manifest_2024.csv",
+      "sha256": "5fdd75ff0eb5fffd64685b5a73d829ddb69e70404f20b754eec76b4eecfb5f21"
+    },
+    {
+      "path": "configs/day9_independent_regions.json",
+      "sha256": "1fdd287b868dd056a771eb6af6dba6d992b06616bf03afacfcd3219dbf69ff37"
+    },
+    {
+      "path": "outputs/tables/day10_external_metrics.csv",
+      "sha256": "c1e10201d5ec692db009ec6c81de2a114eb20017c0f1970801e71056fdc42544"
+    },
+    {
+      "path": "outputs/tables/day10_external_bootstrap.csv",
+      "sha256": "8c584dc82427d858cf43cff4b90855e645e583981226fb49ef838a8f09b21016"
+    },
+    {
+      "path": "outputs/tables/day10_external_permutation.csv",
+      "sha256": "d9a5fe84ec3fb59d097cc5ffff02a6716513c797cf473eda11ef037aa4cf7357"
+    },
+    {
+      "path": "outputs/tables/day10_external_decision.csv",
+      "sha256": "2fc72da6e963e540e14f5c89b42ac01b4fba05254cbc3854c45936227fff17f1"
+    },
+    {
+      "path": "outputs/tables/day10_linkage_diagnostics.csv",
+      "sha256": "6ab393d22777e26767228db111ad924835da1fc48dd78e3efb570f4b4103ef4a"
+    },
+    {
+      "path": "outputs/tables/day10_effis_manifest.csv",
+      "sha256": "64ce4f2e91ca2f2b3611d40967a3047fdb9362cdb5b7b3af52baa1e4ad0b17cc"
+    },
+    {
+      "path": "configs/day10_external_validation.json",
+      "sha256": "8ced3fe1e6eca6ce4ef69906847ad74f4141e9883c8fb632582efb0a02c3cee5"
+    },
+    {
+      "path": "outputs/tables/day11_pair_summary.csv",
+      "sha256": "39f4ed891a4293fcc139e5e7d585bfcb7c27f853aac2796728ca2f5f4ca5e192"
+    },
+    {
+      "path": "outputs/tables/day11_decision.csv",
+      "sha256": "22e8e0d6117e89fd4bfa99d3aefd35583b6b74141496f46e738306fa9bf93877"
+    },
+    {
+      "path": "outputs/tables/day11_swath_manifest.csv",
+      "sha256": "f76275a0d151668593d706192de7c23ce2fc6ecd3b047a8b65a0d8e30a451974"
+    },
+    {
+      "path": "outputs/tables/day12_claim_registry.csv",
+      "sha256": "03f2a9f9f200755a8275e6d3f4b33080dcf5f91f76ec82f03ec23ec1cf677c13"
+    },
+    {
+      "path": "outputs/tables/day12_readiness_decision.json",
+      "sha256": "9b14ad71cf99eeb7e80495597de0879c7483ff79040a96d58f65523aa53f5125"
+    },
+    {
+      "path": "outputs/tables/day12_evidence_passport.json",
+      "sha256": "00e355414719a8f470bad42516951299e8a4ded0cd942ab11d543c0638f6520a"
+    },
+    {
+      "path": "outputs/tables/day12_observation_evidence.geojson",
+      "sha256": "0b77164ff443abf9fec9add5779ac9d64ea21920206c58db62653c10a30082ad"
+    },
+    {
+      "path": "outputs/tables/day12_openapi.json",
+      "sha256": "7e57469df9c18fa972ed27a4b376b8eb5c409836252d410eabff699a754e8a63"
+    },
+    {
+      "path": "configs/day12_product_readiness.json",
+      "sha256": "3ae5be371d978122f00a52ebe89ee19262646b9eafdd7cd6cb8b5a67f64d7abf"
+    },
+    {
+      "path": "data/team/qorvex_victoria_2024/product_contribution.csv",
+      "sha256": "f766dfd0973db30a39443f518a12c6a3d7e76059c07c229392b7207ff1ed9570"
+    },
+    {
+      "path": "data/team/qorvex_victoria_2024/monthly_detections.csv",
+      "sha256": "c0965ae6674e862a2eb52a1ac77fcf845b35c21024f68c99e3c7074e01f16fd4"
+    },
+    {
+      "path": "data/team/qorvex_victoria_2024/top_100_h3_cells.csv",
+      "sha256": "5cdb3ca9067d1200425e3f649b12e577fc880600e993662ff53154545fcfe7b9"
+    },
+    {
+      "path": "data/team/qorvex_victoria_2024/spatial_summary.csv",
+      "sha256": "5152303bf4a404d53eef62f801c37d7a53f4cba2f0c9a6bff2667563975c907e"
+    },
+    {
+      "path": "data/team/qorvex_victoria_2024/sensor_pairwise_overlap.csv",
+      "sha256": "4d35ccd0c9c0c56bfbf8250db06ad329aafe8faf988fa0024e4b64ce0f49d766"
+    },
+    {
+      "path": "data/team/qorvex_victoria_2024/frp_statistics_by_product.csv",
+      "sha256": "86e6c1ee8d1f56393517e39b6aeb8f155d4c9f4f458470f46113dac1bcbefe04"
+    },
+    {
+      "path": "data/team/qorvex_victoria_2024/victoria_2024_bbox_points.parquet",
+      "sha256": "dd8b3a2a3053b05061ac18d2694b73e79a693289ef17ce9f0c81be87e7a5f9d5"
+    },
+    {
+      "path": "site/vendor/leaflet/leaflet.js",
+      "sha256": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a"
+    },
+    {
+      "path": "site/vendor/leaflet/leaflet.css",
+      "sha256": "a7837102824184820dfa198d1ebcd109ff6d0ff9a2672a074b9a1b4d147d04c6"
+    },
+    {
+      "path": "site/vendor/leaflet/LICENSE",
+      "sha256": "53e8dc25862014e4324741ca18fbe3611e11d42ef69f59f86ea8c5389647d4cb"
+    }
+  ],
+  "artifacts": {
+    "demo/fyrora-space-apps-demo.pdf": "cbd89acc36fc1535c046970f36910a422795efdd0a762db254da5fb5cb74eec9",
+    "dashboard.json": "6ff30c3d6f1d9dfaf9497131688e599c502e97acd50ff29b46e8906c36974a66",
+    "qorvex-victoria-2024.json": "7f61ae851178e88e93ce94f1eb49fddf6012abc7093494c35ca4484fb7774201",
+    "victoria-2024-points.json": "282f4d85770f7e1832510317b1b2db76ba21842a225d7bec606d9edccd03939c",
+    "vendor/leaflet/leaflet.js": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a",
+    "vendor/leaflet/leaflet.css": "a7837102824184820dfa198d1ebcd109ff6d0ff9a2672a074b9a1b4d147d04c6",
+    "vendor/leaflet/LICENSE": "53e8dc25862014e4324741ca18fbe3611e11d42ef69f59f86ea8c5389647d4cb",
+    "qorvex-victoria-monthly.csv": "c0965ae6674e862a2eb52a1ac77fcf845b35c21024f68c99e3c7074e01f16fd4",
+    "qorvex-victoria-top-h3.csv": "5cdb3ca9067d1200425e3f649b12e577fc880600e993662ff53154545fcfe7b9",
+    "qorvex-victoria-sensor-overlap.csv": "4d35ccd0c9c0c56bfbf8250db06ad329aafe8faf988fa0024e4b64ce0f49d766",
+    "western_iberia_aoi.json": "e1c32a26254929e56d641c481a088610240e13c2b93c27d696cee1a9749c877c",
+    "ne_110m_land.geojson": "9e0729ee253ca7d7a5c4ae9395fb1902264c5377c52e224d13dd85010e2835d9",
+    "fonts/Vazirmatn.woff2": "4e3fa217d38fdafc1fea4414ceb58ca5e662cf0ab5fa735a8c8c20e8b42cad92",
+    "fonts/OFL.txt": "17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31",
+    "calendar.csv": "696dc1d3ad2587852784050d86bb89c13c19486f09d03034916dbe9e81419b6d",
+    "western_iberia_calendar.csv": "0029636fdf4a835e3abfd72ebf84411b5096b7d175daaecb8f7db5ad89a9493b",
+    "western_iberia_pilot.json": "0868d590b8eb9e8af7c463387ac9b4f647c0b17ed70c600c0d579229eeca1b58",
+    "independent_2021_metrics.csv": "18581e9a869acf090bad069d351c2466130e6488457954a9712ae57d21de7f07",
+    "day7_2022_locked_test.csv": "2e3e5e5968585cde9785de7e4e3ffe346652ddd0cdbbc59ac8b4a5b53b83d918",
+    "detection_support_audit.csv": "1d4d884ef18dc9c384235e4fb2966478ea4f0dbba4cb32cb506123163632a402",
+    "geometry_2023_locked_test.csv": "7300517bf1665e9a96bbaf65f47ea5600a2ef24f6b8a34b1fc1527e7fabdd588",
+    "geometry_2023_interval_coverage.csv": "4d9ebc92b1c991ec0548a17c35e2064553cd52209d43f42161fab51d0319c6e7",
+    "geometry_2023_cell_pass_predictions.csv": "b21e629a8202f306731265ba6b6cf78a66dbea97c41d49fb77c233099abf54ed",
+    "day9_independent_transfer_metrics.csv": "f59207d12119fd3dbfb93783df56f1d8327c6cc8dc8acc3dc5dd99aa05a61c6e",
+    "day9_independent_transfer_bootstrap.csv": "c9c3500f19507a06e82a71a252dd37f59a7663fb0a57d8a3663e7613ab0f9c38",
+    "day9_independent_transfer_decision.csv": "3500d42c2cf5b7ee51e4bdea0460cae49f5a03a8bf16ca7896371c1b684b17c7",
+    "day10_external_metrics.csv": "c1e10201d5ec692db009ec6c81de2a114eb20017c0f1970801e71056fdc42544",
+    "day10_external_bootstrap.csv": "8c584dc82427d858cf43cff4b90855e645e583981226fb49ef838a8f09b21016",
+    "day10_external_permutation.csv": "d9a5fe84ec3fb59d097cc5ffff02a6716513c797cf473eda11ef037aa4cf7357",
+    "day10_external_decision.csv": "2fc72da6e963e540e14f5c89b42ac01b4fba05254cbc3854c45936227fff17f1",
+    "day11_pair_summary.csv": "39f4ed891a4293fcc139e5e7d585bfcb7c27f853aac2796728ca2f5f4ca5e192",
+    "day12_claim_registry.csv": "03f2a9f9f200755a8275e6d3f4b33080dcf5f91f76ec82f03ec23ec1cf677c13",
+    "evidence-passport.json": "00e355414719a8f470bad42516951299e8a4ded0cd942ab11d543c0638f6520a",
+    "day12_observation_evidence.geojson": "0b77164ff443abf9fec9add5779ac9d64ea21920206c58db62653c10a30082ad",
+    "openapi.json": "7e57469df9c18fa972ed27a4b376b8eb5c409836252d410eabff699a754e8a63"
+  }
+}

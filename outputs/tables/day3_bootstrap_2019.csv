@@ -1,0 +1,3 @@
+metric,comparison,replicates,estimate,ci_2_5,ci_97_5,probability_model_better
+count,selected_mae_minus_baseline_mae,500,-0.21025383107426204,-0.22718245041307622,-0.19343425925475147,1.0
+frp_mw,selected_mae_minus_baseline_mae,500,-3.9824664922006314,-5.619140933688469,-2.269272036344747,1.0

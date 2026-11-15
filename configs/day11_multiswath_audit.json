@@ -1,0 +1,45 @@
+{
+  "protocol_version": "1.0",
+  "frozen_before_scoring": true,
+  "study_region": "western_iberia",
+  "study_date": "2023-08-06",
+  "grid_km": 10,
+  "sensor_families": {
+    "VIIRS": {
+      "fire_product": "VNP14IMG",
+      "geolocation_product": "VNP03IMG",
+      "collection": "002",
+      "expected_acquisitions": ["2023218.0206", "2023218.0342", "2023218.1324", "2023218.1330"]
+    },
+    "MODIS": {
+      "fire_product": "MYD14",
+      "geolocation_product": "MYD03",
+      "collection": "061",
+      "expected_acquisitions": ["2023218.0235", "2023218.0240", "2023218.1340", "2023218.1345"]
+    }
+  },
+  "mask_classes": {
+    "not_processed": [0, 1, 2],
+    "water": [3],
+    "cloud": [4],
+    "clear_nonfire_land": [5],
+    "unknown": [6],
+    "fire": [7, 8, 9]
+  },
+  "acceptance_gates": {
+    "complete_pairs": 8,
+    "minimum_pairs_per_sensor": 4,
+    "minimum_day_pairs_per_sensor": 2,
+    "minimum_night_pairs_per_sensor": 2,
+    "allowed_mask_codes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "require_identical_mask_geolocation_shapes": true,
+    "require_sha256_for_every_granule": true,
+    "forbid_cloud_or_missing_as_clear_negative": true,
+    "require_explicit_not_observed_cells": true
+  },
+  "interpretation": {
+    "unit": "10-km equal-area cell by acquisition",
+    "clear_negative_rule": "At least one clear non-fire land pixel and zero fire pixels in that acquisition",
+    "limitation": "Pixel counts are sampling evidence, not fractional area coverage or operational fire truth"
+  }
+}

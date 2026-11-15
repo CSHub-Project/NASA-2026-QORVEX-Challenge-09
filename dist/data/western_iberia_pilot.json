@@ -1,0 +1,48 @@
+{
+  "regionId": "western_iberia",
+  "year": 2020,
+  "testCellPasses": 1517,
+  "baselineWape": 1.071186,
+  "selectedWape": 0.708338,
+  "transferBaselineWape": 1.008568,
+  "transferModelWape": 0.719084,
+  "coveredSlots": 172,
+  "calendarSlots": 732,
+  "independent2021": {
+    "testCellPasses": 1253,
+    "matchedPasses": 161,
+    "baselineWape": 1.160013,
+    "selectedWape": 0.734604,
+    "maeDifferenceCi": [
+      -0.284936,
+      -0.226668
+    ]
+  },
+  "locked2022": {
+    "testCellPasses": 1722,
+    "matchedPasses": 182,
+    "baselineWape": 0.925377,
+    "selectedWape": 0.665387,
+    "viirsOnlyWape": 0.68242,
+    "monotoneViirsOnlyWape": 0.683106,
+    "promoted": false,
+    "modisOnlyCellPasses": 245,
+    "modisPositiveCellPasses": 739,
+    "modisDetectionsWithoutViirsCell": 401,
+    "modisDetections": 1948
+  },
+  "locked2023": {
+    "testCellPasses": 879,
+    "matchedPasses": 128,
+    "baselineWape": 1.015209,
+    "incumbentWape": 0.703993,
+    "geometryWape": 0.700647,
+    "geometryMinusIncumbentMaeCi": [
+      -0.014667,
+      0.00586
+    ],
+    "empiricalIntervalCoverage": 0.895336,
+    "nominalIntervalCoverage": 0.9,
+    "promoted": false
+  }
+}

@@ -1,0 +1,2 @@
+test,replicates,observed_spearman,null_median,null_95pct,p_value_one_sided,unique_shifts_evaluated
+shared_circular_calendar_shift,2000,0.12995282774297823,-0.03850928241014233,0.10390147027895974,0.005997001499250375,362

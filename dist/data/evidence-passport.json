@@ -1,0 +1,54 @@
+{
+  "product": "Fyrora Evidence API",
+  "releaseStage": "research_preview",
+  "operationalReady": false,
+  "supportedClaims": 2,
+  "failedOrUnsupportedClaims": 2,
+  "blockingGates": [
+    "day10_external_outcome_validation"
+  ],
+  "decision": "research_preview_only",
+  "claims": [
+    {
+      "claim_id": "full_swath_missingness",
+      "claim": "Fyrora distinguishes clear sampling, fire, obscured/non-land and not-observed cells for the audited day.",
+      "status": "supported",
+      "evidence_grade": "A",
+      "scope": "Western Iberia; 2023-08-06; four Aqua MODIS and four S-NPP VIIRS acquisitions",
+      "limitation": "One-day observation-support audit; not probability of detection or global completeness",
+      "artifact": "outputs/tables/day11_decision.csv",
+      "artifact_sha256": "22e8e0d6117e89fd4bfa99d3aefd35583b6b74141496f46e738306fa9bf93877"
+    },
+    {
+      "claim_id": "independent_transfer",
+      "claim": "The frozen harmonization method passed its precommitted 2024 three-region transfer gate.",
+      "status": "supported",
+      "evidence_grade": "B",
+      "scope": "Three unseen 2024 study windows; fixed model and thresholds",
+      "limitation": "Two regions still have WAPE above 1; this does not establish global accuracy",
+      "artifact": "outputs/tables/day9_independent_transfer_decision.csv",
+      "artifact_sha256": "3500d42c2cf5b7ee51e4bdea0460cae49f5a03a8bf16ca7896371c1b684b17c7"
+    },
+    {
+      "claim_id": "external_outcome",
+      "claim": "Harmonized activity is strongly associated with EFFIS mapped burned area.",
+      "status": "failed_gate",
+      "evidence_grade": "C",
+      "scope": "201 eligible Western Iberia EFFIS events in 2023",
+      "limitation": "Precommitted association threshold and bootstrap lower-bound gates failed",
+      "artifact": "outputs/tables/day10_external_decision.csv",
+      "artifact_sha256": "2fc72da6e963e540e14f5c89b42ac01b4fba05254cbc3854c45936227fff17f1"
+    },
+    {
+      "claim_id": "operational_readiness",
+      "claim": "Fyrora is ready for live operational incident alerting.",
+      "status": "not_supported",
+      "evidence_grade": "C",
+      "scope": "Current research prototype",
+      "limitation": "No live latency/SLA test, multi-season swath validation or passed external-outcome gate",
+      "artifact": "configs/day12_product_readiness.json",
+      "artifact_sha256": "3ae5be371d978122f00a52ebe89ee19262646b9eafdd7cd6cb8b5a67f64d7abf"
+    }
+  ],
+  "safetyBoundary": "Research and planning evidence; not a live alert, burned-area product or emergency-service replacement."
+}

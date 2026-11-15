@@ -1,0 +1,31 @@
+[
+  {
+    "id": "hyrcanian",
+    "name_en": "Hyrcanian Forests",
+    "name_fa": "جنگل‌های هیرکانی",
+    "bbox": [48.0, 35.5, 56.5, 38.6],
+    "purpose": "Local-impact pilot across the southern Caspian forest belt"
+  },
+  {
+    "id": "california_north",
+    "name_en": "Northern California",
+    "name_fa": "کالیفرنیای شمالی",
+    "bbox": [-124.5, 36.5, -118.5, 42.1],
+    "purpose": "Large-wildfire validation and storytelling region"
+  },
+  {
+    "id": "amazon_arc",
+    "name_en": "Amazon Arc of Deforestation",
+    "name_fa": "کمان جنگل‌زدایی آمازون",
+    "bbox": [-60.0, -14.0, -48.0, -3.0],
+    "purpose": "Tropical forest and agricultural-burning regime"
+  },
+  {
+    "id": "western_iberia",
+    "name_en": "Western Iberia",
+    "name_fa": "غرب شبه‌جزیره ایبری",
+    "bbox": [-9.5, 37.0, -5.5, 43.0],
+    "purpose": "European Mediterranean-Atlantic pilot across Portugal and western Spain; a rectangular study window, not a national boundary"
+  }
+]
+

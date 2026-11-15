@@ -1,0 +1,2 @@
+linked_prediction_rows,linked_event_row_associations,rows_linked_to_multiple_events,fraction_linked_rows_with_overlap,duplicate_association_fraction,maximum_event_multiplicity,sensitivity_rule
+285,628,124,0.43508771929824563,0.5461783439490446,9,each linked prediction row contributes 1/n to each of n overlapping events

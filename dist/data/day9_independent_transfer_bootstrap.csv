@@ -1,0 +1,2 @@
+comparison,replicates,utc_dates,estimate,ci_2_5,ci_97_5,fraction_model_better
+model_minus_baseline_mae,500,335,-0.16600405216279884,-0.1865485342798331,-0.14395923205565483,1.0

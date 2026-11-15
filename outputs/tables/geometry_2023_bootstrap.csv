@@ -1,0 +1,2 @@
+comparison,replicates,estimate,ci_2_5,ci_97_5,fraction_bootstrap_candidate_better
+geometry_aware_minus_incumbent_mae,500,-0.002523822901002316,-0.014666980188752317,0.005860293571457946,0.64

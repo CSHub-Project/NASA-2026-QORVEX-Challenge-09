@@ -1,0 +1,2 @@
+source_url,sha256,bytes,download_date,shapefile_records_in_locked_bbox,eligible_2023_events,projection_wkt
+https://forest-fire.emergency.copernicus.eu/downloads/data.request.form/effis_layer.zip,2ec321b7ee0cb5033b8a03fce7e7e01bfbdfc74d116db211a1be7e0f0aed1abe,261832744,2026-11-11,9833,201,"GEOGCS[""GCS_WGS_1984"",DATUM[""D_WGS_1984"",SPHEROID[""WGS_1984"",6378137.0,298.257223563]],PRIMEM[""Greenwich"",0.0],UNIT[""Degree"",0.0174532925199433]]"

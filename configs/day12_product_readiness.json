@@ -1,0 +1,29 @@
+{
+  "protocol_version": "1.0",
+  "frozen_before_generation": true,
+  "product": "Fyrora Evidence API",
+  "release_stage": "research_preview",
+  "evidence_grades": {
+    "A": "Direct full-swath observation evidence with explicit missingness",
+    "B": "Locked out-of-sample quantitative evaluation",
+    "C": "Exploratory or failed external gate; not decision-ready"
+  },
+  "blocking_gates": [
+    "day10_external_outcome_validation"
+  ],
+  "acceptance_gates": {
+    "every_claim_has_artifact_and_sha256": true,
+    "every_claim_has_scope_and_limitation": true,
+    "machine_readable_geojson_is_valid": true,
+    "openapi_contract_is_valid_json": true,
+    "operational_ready_must_be_false_if_any_blocker_fails": true,
+    "dashboard_must_show_passes_and_failures": true,
+    "raw_credentials_or_protected_granules_must_not_ship": true
+  },
+  "non_goals": [
+    "live incident alerting",
+    "burned-area estimation",
+    "global operational accuracy claim",
+    "replacement for EFFIS or emergency services"
+  ]
+}

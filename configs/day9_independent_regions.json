@@ -1,0 +1,23 @@
+[
+  {
+    "id": "southern_africa_savanna",
+    "name_en": "Southern African Savanna",
+    "name_fa": "ساوانای جنوب آفریقا",
+    "bbox": [20.0, -25.0, 32.0, -15.0],
+    "purpose": "Independent savanna and seasonal-burning transfer window; rectangular study window, not an ecological boundary"
+  },
+  {
+    "id": "eastern_siberia_boreal",
+    "name_en": "Eastern Siberian Boreal",
+    "name_fa": "جنگل‌های شمالی سیبری شرقی",
+    "bbox": [105.0, 55.0, 120.0, 65.0],
+    "purpose": "Independent high-latitude boreal-fire transfer window; rectangular study window, not an ecological boundary"
+  },
+  {
+    "id": "southeast_australia",
+    "name_en": "Southeast Australia",
+    "name_fa": "جنوب‌شرق استرالیا",
+    "bbox": [140.0, -39.0, 151.0, -32.0],
+    "purpose": "Independent Southern Hemisphere temperate and Mediterranean-type fire transfer window; rectangular study window, not a political boundary"
+  }
+]

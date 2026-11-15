@@ -1,0 +1,9 @@
+analysis,method,is_primary,events,zero_activity_events,spearman,kendall_tau
+primary_many_to_many,modis_count,False,201,79,0.14317289557906113,0.10175224389222114
+primary_many_to_many,viirs_count,False,201,59,0.15609215975818577,0.10956023802728056
+primary_many_to_many,incumbent_prediction,False,201,54,0.1370329545264023,0.09356120226217851
+primary_many_to_many,geometry_aware_prediction,True,201,54,0.12995282774297823,0.08795064710153705
+fractional_overlap_sensitivity,modis_count,False,201,79,0.14659768921763758,0.10928568008757895
+fractional_overlap_sensitivity,viirs_count,False,201,59,0.16824813948903788,0.11810576494836157
+fractional_overlap_sensitivity,incumbent_prediction,False,201,54,0.1387703356955613,0.09865226157461243
+fractional_overlap_sensitivity,geometry_aware_prediction,True,201,54,0.13379626117131532,0.0947040931282351
