@@ -141,6 +141,7 @@ h1 em { color: var(--amber); font-family: Georgia, "Times New Roman", serif; fon
 .aoi-form input:focus-visible, .aoi-form select:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
 .form-boundary { margin: 17px 0; padding: 12px 14px; border-left: 3px solid var(--amber); background: rgba(255,180,74,.06); color: var(--muted); font-size: .78rem; }
 .form-error { min-height: 24px; margin: 12px 0 0; color: #ff9b7f; font-weight: 700; }
+.form-status { min-height: 24px; margin: 4px 0 0; color: var(--teal); font-weight: 700; }
 .aoi-map-card { display: flex; flex-direction: column; justify-content: center; }
 .aoi-map { width: min(100%, 440px); margin: auto; }
 .aoi-map svg { display: block; width: 100%; min-height: 330px; }
@@ -149,6 +150,7 @@ h1 em { color: var(--amber); font-family: Georgia, "Times New Roman", serif; fon
 .aoi-map text { fill: var(--muted); font-size: 3.5px; }
 .aoi-map-card p { margin: 8px 0 0; color: var(--muted); font-size: .78rem; text-align: center; }
 .aoi-results { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin: 18px 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--line); }
+.aoi-results:focus-visible { outline: 3px solid var(--teal); outline-offset: 4px; }
 .aoi-results article { display: flex; min-width: 0; flex-direction: column; gap: 6px; padding: 16px; background: #0a1814; }
 .aoi-results span { color: var(--muted); font-size: .74rem; }
 .aoi-results strong { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
@@ -255,15 +257,6 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 footer p { margin: 0; }
 .noscript { position: fixed; bottom: 0; width: 100%; margin: 0; padding: 10px; background: #a4422b; color: white; text-align: center; }
 
-[dir="rtl"] body { font-family: Tahoma, "Segoe UI", sans-serif; }
-[dir="rtl"] .hero, [dir="rtl"] .section-heading { direction: rtl; }
-[dir="rtl"] .day-detail { border-left: 0; border-right: 3px solid var(--lime); border-radius: 9px 0 0 9px; }
-[dir="rtl"] .method-flow li:not(:last-child)::after { right: auto; left: -10px; content: "←"; }
-[dir="rtl"] .architecture-flow li:not(:last-child)::after { right: auto; left: -12px; content: "←"; }
-[dir="rtl"] .tour-proof { border-left: 0; border-right: 2px solid var(--teal); }
-[dir="rtl"] .form-boundary { border-left: 0; border-right: 3px solid var(--amber); }
-[dir="rtl"] .judge-tour { right: auto; left: 22px; }
-
 @media (max-width: 900px) {
   .site-header { grid-template-columns: 1fr auto; }
   nav { display: none; }
@@ -305,7 +298,6 @@ footer p { margin: 0; }
   .provenance-links .button { width: 100%; }
   .transfer-item { grid-template-columns: 100px 1fr 50px; }
   .judge-tour { right: 16px; bottom: 16px; padding: 19px; }
-  [dir="rtl"] .judge-tour { left: 16px; }
   footer { align-items: flex-start; flex-direction: column; padding-left: 16px; padding-right: 16px; }
 }
 
@@ -855,7 +847,6 @@ footer p a { color: inherit; }
 .victoria-map-stats strong { display: block; margin-top: 2px; color: #f2f6ef; font-size: .9rem; }
 .victoria-explorer .sensor-note { margin-bottom: 0; }
 .leaflet-control-attribution { font-size: 10px !important; }
-html[dir="rtl"] .victoria-map-stats { right: auto; left: 12px; }
 .sensor-card { min-width: 0; padding: 22px; border: 1px solid rgba(255,255,255,.14); border-radius: 20px; background: #0d211b; }
 .sensor-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .sensor-card h3 { margin: 4px 0 18px; }
@@ -883,7 +874,6 @@ html[dir="rtl"] .victoria-map-stats { right: auto; left: 12px; }
 .sensor-boundary small { flex-basis: 100%; color: #91a69b; }
 .sensor-downloads { display: flex; flex-wrap: wrap; gap: 8px 14px; }
 .sensor-downloads a { color: #d4ef84; }
-html[dir="rtl"] .sensor-detail { direction: ltr; text-align: right; }
 
 @media (max-width: 820px) {
   .sensor-grid { grid-template-columns: 1fr; }
@@ -910,83 +900,83 @@ html[dir="rtl"] .sensor-detail { direction: ltr; text-align: right; }
   #victoria-map { height: 390px; }
 }
 
-html[lang="fa"] body {
-  font-family: "Vazirmatn", Tahoma, "Segoe UI", sans-serif;
+html[lang="tr"] body {
+  font-family: Inter, Aptos, "Segoe UI", system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.78;
   font-feature-settings: "ss01" 1, "tnum" 1;
   text-rendering: optimizeLegibility;
 }
-html[lang="fa"] h1 {
+html[lang="tr"] h1 {
   max-width: 820px;
   font-size: clamp(2.75rem, 6vw, 5.2rem);
   line-height: 1.16;
   letter-spacing: -.018em;
   font-weight: 760;
 }
-html[lang="fa"] .hero-lede {
+html[lang="tr"] .hero-lede {
   max-width: 720px;
   font-size: clamp(1.06rem, 1.4vw, 1.22rem);
   line-height: 1.9;
 }
-html[lang="fa"] .section-heading h2 {
+html[lang="tr"] .section-heading h2 {
   font-size: clamp(2rem, 3.45vw, 3.05rem);
   line-height: 1.3;
   letter-spacing: -.012em;
   font-weight: 720;
 }
-html[lang="fa"] h3 { line-height: 1.48; font-weight: 700; }
-html[lang="fa"] p,
-html[lang="fa"] li,
-html[lang="fa"] dd { line-height: 1.82; }
-html[lang="fa"] .eyebrow,
-html[lang="fa"] .control-panel label > span,
-html[lang="fa"] .control-panel legend,
-html[lang="fa"] .aoi-form label > span,
-html[lang="fa"] .card-kicker,
-html[lang="fa"] .map-time,
-html[lang="fa"] .map-readout span {
+html[lang="tr"] h3 { line-height: 1.48; font-weight: 700; }
+html[lang="tr"] p,
+html[lang="tr"] li,
+html[lang="tr"] dd { line-height: 1.72; }
+html[lang="tr"] .eyebrow,
+html[lang="tr"] .control-panel label > span,
+html[lang="tr"] .control-panel legend,
+html[lang="tr"] .aoi-form label > span,
+html[lang="tr"] .card-kicker,
+html[lang="tr"] .map-time,
+html[lang="tr"] .map-readout span {
   letter-spacing: 0;
   text-transform: none;
 }
-html[lang="fa"] .eyebrow { font-size: .82rem; line-height: 1.65; }
-html[lang="fa"] nav a { font-size: .91rem; }
-html[lang="fa"] .button { min-height: 46px; padding: 9px 17px; font-size: .94rem; line-height: 1.55; }
-html[lang="fa"] .header-actions button { font-size: .82rem; line-height: 1.5; }
-html[lang="fa"] .control-panel label > span,
-html[lang="fa"] .control-panel legend,
-html[lang="fa"] .aoi-form label > span { font-size: .78rem; line-height: 1.6; }
-html[lang="fa"] .control-panel select,
-html[lang="fa"] .aoi-form input,
-html[lang="fa"] .aoi-form select { font-size: 1rem; }
-html[lang="fa"] .coverage-summary span,
-html[lang="fa"] .calendar-toolbar p,
-html[lang="fa"] .legend,
-html[lang="fa"] .card-kicker,
-html[lang="fa"] .aoi-map-card p,
-html[lang="fa"] .text-button { font-size: .84rem; }
-html[lang="fa"] .metric-card p,
-html[lang="fa"] .judge-grid p,
-html[lang="fa"] .method-flow p,
-html[lang="fa"] .architecture p { font-size: .98rem; line-height: 1.82; }
-html[lang="fa"] .map-time,
-html[lang="fa"] .map-readout { font-family: "Vazirmatn", Tahoma, sans-serif; }
-html[lang="fa"] .map-time { font-size: .68rem; }
-html[lang="fa"] .map-time strong { font-size: .74rem; }
-html[lang="fa"] .map-readout span { font-size: .69rem; }
-html[lang="fa"] .map-readout strong { font-size: 1rem; }
-html[lang="fa"] .map-note { font-size: .78rem; }
-html[lang="fa"] .judge-tour h2 { font-size: 1.55rem; line-height: 1.45; letter-spacing: 0; }
+html[lang="tr"] .eyebrow { font-size: .82rem; line-height: 1.55; }
+html[lang="tr"] nav a { font-size: .91rem; }
+html[lang="tr"] .button { min-height: 46px; padding: 9px 17px; font-size: .94rem; line-height: 1.45; }
+html[lang="tr"] .header-actions button { font-size: .82rem; line-height: 1.4; }
+html[lang="tr"] .control-panel label > span,
+html[lang="tr"] .control-panel legend,
+html[lang="tr"] .aoi-form label > span { font-size: .78rem; line-height: 1.5; }
+html[lang="tr"] .control-panel select,
+html[lang="tr"] .aoi-form input,
+html[lang="tr"] .aoi-form select { font-size: 1rem; }
+html[lang="tr"] .coverage-summary span,
+html[lang="tr"] .calendar-toolbar p,
+html[lang="tr"] .legend,
+html[lang="tr"] .card-kicker,
+html[lang="tr"] .aoi-map-card p,
+html[lang="tr"] .text-button { font-size: .84rem; }
+html[lang="tr"] .metric-card p,
+html[lang="tr"] .judge-grid p,
+html[lang="tr"] .method-flow p,
+html[lang="tr"] .architecture p { font-size: .98rem; line-height: 1.72; }
+html[lang="tr"] .map-time,
+html[lang="tr"] .map-readout { font-family: Inter, Aptos, "Segoe UI", sans-serif; }
+html[lang="tr"] .map-time { font-size: .68rem; }
+html[lang="tr"] .map-time strong { font-size: .74rem; }
+html[lang="tr"] .map-readout span { font-size: .69rem; }
+html[lang="tr"] .map-readout strong { font-size: 1rem; }
+html[lang="tr"] .map-note { font-size: .78rem; }
+html[lang="tr"] .judge-tour h2 { font-size: 1.55rem; line-height: 1.4; letter-spacing: 0; }
 
 @media (max-width: 580px) {
-  html[lang="fa"] body { font-size: 15.5px; }
-  html[lang="fa"] h1 { font-size: clamp(2.45rem, 12vw, 3.55rem); line-height: 1.2; }
-  html[lang="fa"] .section-heading h2 { font-size: clamp(1.85rem, 8.5vw, 2.55rem); }
-  html[lang="fa"] .hero-lede { font-size: 1.04rem; }
-  html[lang="fa"] .button { width: 100%; font-size: .93rem; }
-  html[lang="fa"] .header-actions .theme-toggle,
-  html[lang="fa"] .header-actions .language-toggle,
-  html[lang="fa"] .header-actions .judge-trigger { width: auto; padding: 7px 8px; font-size: .76rem; }
+  html[lang="tr"] body { font-size: 15.5px; }
+  html[lang="tr"] h1 { font-size: clamp(2.45rem, 12vw, 3.55rem); line-height: 1.15; }
+  html[lang="tr"] .section-heading h2 { font-size: clamp(1.85rem, 8.5vw, 2.55rem); }
+  html[lang="tr"] .hero-lede { font-size: 1.04rem; }
+  html[lang="tr"] .button { width: 100%; font-size: .93rem; }
+  html[lang="tr"] .header-actions .theme-toggle,
+  html[lang="tr"] .header-actions .language-toggle,
+  html[lang="tr"] .header-actions .judge-trigger { width: auto; padding: 7px 8px; font-size: .76rem; }
 }
 
 @media (max-width: 580px) {

@@ -69,7 +69,7 @@ DAY12_PASSPORT_PATH = ROOT / "outputs" / "tables" / "day12_evidence_passport.jso
 DAY12_GEOJSON_PATH = ROOT / "outputs" / "tables" / "day12_observation_evidence.geojson"
 DAY12_OPENAPI_PATH = ROOT / "outputs" / "tables" / "day12_openapi.json"
 DAY12_CONFIG_PATH = ROOT / "configs" / "day12_product_readiness.json"
-PROJECT_DEMO_PATH = ROOT / "submission" / "demo" / "fyrora-space-apps-demo-final.pdf"
+PROJECT_DEMO_PATH = ROOT / "submission" / "demo" / "fyrora-space-apps-demo-submission.pdf"
 PROJECT_DEMO_OUTPUT_NAME = "fyrora-space-apps-demo.pdf"
 PAIRS_2017_2020_PATH = ROOT / "data" / "processed" / "contemporaneous_pairs_2017_2020_10km.parquet"
 SCORED_2020_PATH = ROOT / "data" / "processed" / "year_holdout_scored_2017_2020_10km.parquet"
@@ -466,7 +466,7 @@ def build(output: Path = DEFAULT_OUTPUT) -> Path:
     demo_dir = output / "demo"
     demo_dir.mkdir(exist_ok=True)
 
-    for filename in ("index.html", "styles.css", "app.js", "favicon.svg"):
+    for filename in ("index.html", "styles.css", "app.js", "translations-tr.js", "favicon.svg"):
         shutil.copy2(SITE_SOURCE / filename, output / filename)
     output_fonts = output / "fonts"
     output_fonts.mkdir(exist_ok=True)

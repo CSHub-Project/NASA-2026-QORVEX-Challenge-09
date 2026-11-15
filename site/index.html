@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=1.9.4">
     <link rel="stylesheet" href="styles.css?v=guide-team-1">
     <script src="vendor/leaflet/leaflet.js?v=1.9.4" defer></script>
-    <script src="app.js?v=guide-team-1" defer></script>
+    <script src="translations-tr.js?v=tr-1" defer></script>
+    <script src="app.js?v=tr-1" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#explorer">Skip to explorer</a>
@@ -32,7 +33,7 @@
       <div class="header-actions">
         <button class="judge-trigger" id="judge-trigger" type="button" data-i18n="judgeMode">Judge mode</button>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" data-i18n="darkMode">Dark mode</button>
-        <button class="language-toggle" id="language-toggle" type="button" aria-label="Switch language">فارسی</button>
+        <button class="language-toggle" id="language-toggle" type="button" aria-label="Switch language">Türkçe</button>
       </div>
     </header>
 
@@ -131,7 +132,7 @@
               <span data-percentile-legend data-i18n="low">Low</span>
               <i class="q1" data-percentile-legend></i><i class="q2" data-percentile-legend></i><i class="q3" data-percentile-legend></i><i class="q4" data-percentile-legend></i><i class="q5" data-percentile-legend></i>
               <span data-percentile-legend data-i18n="high">High</span>
-              <i class="unscored" data-history-legend hidden></i><span data-history-legend data-i18n="historicalCount" hidden>Historical count, no anomaly score</span>
+              <i class="unscored" data-history-legend hidden></i><span data-history-legend data-i18n="historicalCount" hidden>Cross-year historical anomaly</span>
               <i class="missing"></i><span data-i18n="noCoverage">No matched pass</span>
             </div>
           </div>
@@ -238,10 +239,11 @@
             </div>
             <p class="form-boundary" data-i18n="aoiBoundary">Evidence scope: 2017–2020 and the displayed Western Iberia rectangle. Coordinates outside this window are rejected. This prototype never sends your NASA key to the browser.</p>
             <div class="aoi-actions">
-              <button class="button button-primary" type="submit" data-i18n="aoiRun">Analyze this area</button>
+              <button class="button button-primary" id="aoi-run" type="submit" data-i18n="aoiRun">Analyze this area</button>
               <button class="button button-quiet" id="aoi-download" type="button" data-i18n="aoiExport" disabled>Download AOI CSV</button>
             </div>
             <p class="form-error" id="aoi-error" role="alert" aria-live="assertive"></p>
+            <p class="form-status" id="aoi-status" role="status" aria-live="polite"></p>
           </form>
 
           <div class="aoi-map-card">
@@ -250,7 +252,7 @@
           </div>
         </div>
 
-        <div class="aoi-results" id="aoi-results" aria-live="polite">
+        <div class="aoi-results" id="aoi-results" tabindex="-1" aria-live="polite">
           <article><span data-i18n="aoiActivity">Harmonized activity</span><strong id="aoi-total">—</strong></article>
           <article><span data-i18n="aoiSupported">Supported days</span><strong id="aoi-supported">—</strong></article>
           <article><span data-i18n="aoiMedian">Historical median expectation</span><strong id="aoi-median">—</strong></article>

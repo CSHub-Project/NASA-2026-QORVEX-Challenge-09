@@ -118,6 +118,7 @@ def test_static_build_is_self_contained_and_hashed(tmp_path):
         "favicon.svg",
         "styles.css",
         "app.js",
+        "translations-tr.js",
         "data/dashboard.json",
         "data/western_iberia_aoi.json",
         "data/calendar.csv",
@@ -170,7 +171,13 @@ def test_static_build_is_self_contained_and_hashed(tmp_path):
     assert "https://" not in (output / "styles.css").read_text(encoding="utf-8")
     assert (output / "fonts" / "Vazirmatn.woff2").stat().st_size > 100_000
     assert (output / "fonts" / "OFL.txt").exists()
-    assert 'html[lang="fa"] body' in (output / "styles.css").read_text(encoding="utf-8")
+    styles = (output / "styles.css").read_text(encoding="utf-8")
+    turkish = (output / "translations-tr.js").read_text(encoding="utf-8")
+    assert 'html[lang="tr"] body' in styles
+    assert 'dir="rtl"' not in styles
+    assert "Türkçe" in (output / "index.html").read_text(encoding="utf-8")
+    assert "Batı İberya" in turkish
+    assert "FYRORA_TR" in turkish
 
 
 def test_judge_mode_and_scientific_sources_ship_in_static_build(tmp_path):
@@ -222,6 +229,11 @@ def test_judge_mode_and_scientific_sources_ship_in_static_build(tmp_path):
     assert "function renderDay10" in script
     assert 'id="aoi-builder"' in html
     assert "function aggregateAoi" in script
+    assert 'id="aoi-run"' in html
+    assert 'id="aoi-status"' in html
+    assert 'scrollIntoView({ behavior: "smooth", block: "center" })' in script
+    assert 'state.lang === "en" ? "tr" : "en"' in script
+    assert 'state.lang === "fa"' not in script
     assert "row.coverage && row.historicalMedian !== null" in script
     assert "www.earthdata.nasa.gov/data/tools/firms" in html
     assert 'id="guide"' in html

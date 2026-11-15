@@ -3,7 +3,7 @@
   "generatedFrom": [
     {
       "path": "outputs/tables/day4_calendar_ready_2017_2020.csv",
-      "sha256": "696dc1d3ad2587852784050d86bb89c13c19486f09d03034916dbe9e81419b6d"
+      "sha256": "385e71fd779c8af1512faf119c443368536c379a6622b9669b20bbb2f2144b9f"
     },
     {
       "path": "outputs/tables/day4_year_holdout_metrics.csv",
@@ -243,8 +243,8 @@
     }
   ],
   "artifacts": {
-    "demo/fyrora-space-apps-demo.pdf": "cbd89acc36fc1535c046970f36910a422795efdd0a762db254da5fb5cb74eec9",
-    "dashboard.json": "6ff30c3d6f1d9dfaf9497131688e599c502e97acd50ff29b46e8906c36974a66",
+    "demo/fyrora-space-apps-demo.pdf": "e9ffdcb3915b22ba6ee761a88e1f1316acc958b709d044d638074187eb7ae28b",
+    "dashboard.json": "c55aaa4465800cacd8641de574d970032a41538ba2f8aa3ef772ddee4942ae33",
     "qorvex-victoria-2024.json": "7f61ae851178e88e93ce94f1eb49fddf6012abc7093494c35ca4484fb7774201",
     "victoria-2024-points.json": "282f4d85770f7e1832510317b1b2db76ba21842a225d7bec606d9edccd03939c",
     "vendor/leaflet/leaflet.js": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a",
@@ -257,8 +257,8 @@
     "ne_110m_land.geojson": "9e0729ee253ca7d7a5c4ae9395fb1902264c5377c52e224d13dd85010e2835d9",
     "fonts/Vazirmatn.woff2": "4e3fa217d38fdafc1fea4414ceb58ca5e662cf0ab5fa735a8c8c20e8b42cad92",
     "fonts/OFL.txt": "17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31",
-    "calendar.csv": "696dc1d3ad2587852784050d86bb89c13c19486f09d03034916dbe9e81419b6d",
-    "western_iberia_calendar.csv": "0029636fdf4a835e3abfd72ebf84411b5096b7d175daaecb8f7db5ad89a9493b",
+    "calendar.csv": "385e71fd779c8af1512faf119c443368536c379a6622b9669b20bbb2f2144b9f",
+    "western_iberia_calendar.csv": "50d7c11b27259bef409e6104eb2f3b2504c655f228fd1b26dbb15ea4ee1ee9c2",
     "western_iberia_pilot.json": "0868d590b8eb9e8af7c463387ac9b4f647c0b17ed70c600c0d579229eeca1b58",
     "independent_2021_metrics.csv": "18581e9a869acf090bad069d351c2466130e6488457954a9712ae57d21de7f07",
     "day7_2022_locked_test.csv": "2e3e5e5968585cde9785de7e4e3ffe346652ddd0cdbbc59ac8b4a5b53b83d918",

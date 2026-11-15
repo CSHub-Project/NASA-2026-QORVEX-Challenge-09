@@ -38,11 +38,11 @@ const translations = {
     passes: "matched satellite passes", years: "years", studyWindows: "study windows",
     improvement: "lower count WAPE on 2020 holdout", coverageFirst: "Coverage-aware activity record",
     explorerTitle: "Compare hotspot activity without treating missing support as zero.",
-    explorerIntro: "History uses Aqua MODIS counts; the held-out 2020 view uses VIIRS harmonized to MODIS-equivalent counts. Hatched cells mean no matched detection-derived pass. The point export cannot establish full satellite coverage or a fire-free day.",
+    explorerIntro: "History uses Aqua MODIS counts; each 2017–2019 anomaly is scored against the other historical years only. The held-out 2020 view uses VIIRS harmonized to MODIS-equivalent counts and is scored against all 2017–2019 history. Hatched cells mean no matched detection-derived pass.",
     region: "Region", year: "Year", overpass: "Overpass", day: "Day", night: "Night",
     exportView: "Export this view", coverage: "Matched-pass support", observedDays: "Supported days",
     peakDay: "Peak observed day", source: "Series source", low: "Low", high: "High",
-    historicalCount: "Historical count, no anomaly score",
+    historicalCount: "No leakage-safe anomaly reference",
     noCoverage: "No matched pass", cellHint: "Focus or point to a day to inspect its evidence.",
     aoiEyebrow: "Interactive area of interest", aoiTitle: "Analyze a place and time within Western Iberia.",
     aoiIntro: "Enter a bounding box inside the Western Iberia evidence window, choose a UTC date range and compare harmonized activity with the median of matching calendar days in other available years.",
@@ -136,141 +136,7 @@ const translations = {
     robustZ: "robust z-score", missingDetail: "No paired detection-derived pass. Satellite coverage cannot be inferred; activity remains unknown in this sample.",
     coverageOf: "of calendar days", improvementShort: "improvement", fileReady: "Filtered CSV downloaded.",
   },
-  fa: {
-    navExplore: "کاوش", navSensorLab: "آزمایشگاه حسگر", navAoi: "ساخت محدوده", navEurope: "پایلوت اروپا", navEvidence: "شواهد", navMethod: "روش", navGuide: "راهنما", navTeam: "تیم",
-    guideEyebrow: "راهنمای برنامه", guideTitle: "روش بررسی Fyrora",
-    guideIntro: "برای بررسی سریع این مسیر را دنبال کنید یا حالت داوری را برای تور هدایت‌شدهٔ ۹۰ ثانیه‌ای اجرا کنید.",
-    guideOneTitle: "از تقویم فعالیت شروع کنید", guideOneCopy: "منطقه، سال و عبور روز یا شب را انتخاب کنید. تاریخ‌های هاشورخورده پشتیبانی عبور تطبیق‌یافته ندارند و نامعلوم باقی می‌مانند.", guideOpenCalendar: "بازکردن تقویم",
-    guideTwoTitle: "رکورد حسگرهای ویکتوریا را بررسی کنید", guideTwoCopy: "رکوردهای واقعی FIRMS در سال ۲۰۲۴ را بر اساس تاریخ، روز یا شب و محصول ماهواره‌ای فیلتر کنید. این رکوردها توصیفی‌اند و شمار آتش‌های یکتا نیستند.", guideOpenVictoria: "بازکردن آزمایشگاه حسگر",
-    guideThreeTitle: "تحلیل محدوده را اجرا کنید", guideThreeCopy: "یک کادر مکانی در غرب ایبری و بازهٔ تاریخ UTC انتخاب کنید و سری روزانهٔ حساس به پوشش را خروجی بگیرید.", guideOpenAoi: "بازکردن محدوده‌ساز",
-    guideFourTitle: "پیش از تفسیر، اعتبارسنجی را بخوانید", guideFourCopy: "نتایج سال‌های بعد، مناطق دیده‌نشده، EFFIS و ممیزی full-swath را همراه محدودیت‌هایشان بررسی کنید.", guideOpenEvidence: "بازکردن شواهد",
-    guideFiveTitle: "ورودی‌های انتشار را ممیزی کنید", guideFiveCopy: "مانیفست، endpoint داده و شناسنامهٔ شواهد، ادعاهای منتشرشده را به فایل‌های نسخه‌بندی‌شده و هش‌ها متصل می‌کنند.", guideOpenMethod: "بازکردن روش",
-    guideBoundary: "Fyrora یک نمونهٔ پژوهشی تاریخی است و هشدار زندهٔ حادثه، برآورد مساحت سوخته یا راهنمای ایمنی ارائه نمی‌کند.",
-    teamEyebrow: "دربارهٔ توسعه‌دهندگان", teamTitle: "مشارکت‌کنندگان تیم QORVEX", teamIntro: "Fyrora خط پردازش همسازسازی و محصول وب را با تحلیل FIRMS و H3 ویکتوریا در سال ۲۰۲۴ ترکیب می‌کند.",
-    taraRole: "سازنده و راهبر فنی", taraContribution: "خط پردازش همسازسازی، طراحی اعتبارسنجی، محصول شواهد و برنامهٔ وب.",
-    ariaRole: "راهبر تیم · تحلیل FIRMS و تحلیل مکانی", ariaContribution: "خلاصه‌های چندحسگری ویکتوریا ۲۰۲۴، تمرکز H3 و تحلیل همپوشانی سلول–روز.",
-    memberRole: "عضو تیم QORVEX", officialMember: "عضو رسمی تیم در NASA Space Apps.",
-    teamNote: "این فهرست با صفحهٔ رسمی تیم QORVEX تطابق دارد. جزئیات مشارکت نسخه در مخزن ثبت شده است.", footerTeam: "توسعه‌یافته توسط تیم QORVEX",
-    sensorLabEyebrow: "ویکتوریا ۲۰۲۴ · رکوردهای NASA FIRMS", sensorLabTitle: "مقایسهٔ چندحسگری ویکتوریا",
-    sensorLabIntro: "پایلوت پالایش‌شدهٔ ویکتوریا در سال ۲۰۲۴ رکوردهای MODIS، ماهوارهٔ S-NPP و NOAA-20 را مقایسه می‌کند و ۱۰۰ سلول H3 پرتراکم را نشان می‌دهد؛ هم‌مکانی به‌اشتباه آتش یکسان تفسیر نمی‌شود.",
-    recordedDetections: "آشکارسازی‌های ثبت‌شده", activeH3: "سلول‌های فعال H3 · تفکیک ۷", peakH3: "بیشترین رکورد در یک سلول",
-    spatialConcentration: "تمرکز مکانی", victoriaMap: "ویکتوریا · ۱۰۰ سلول برتر H3", realData: "دادهٔ واقعی", mapCellHint: "برای دیدن شناسهٔ دقیق سلول H3 و تعداد رکورد، نشانگر را روی شش‌ضلعی ببرید.",
-    sensorContribution: "سهم حسگرها", productMix: "ترکیب محصولات پالایش‌شده", sensorResolutionNote: "سهم بیشتر VIIRS با تفکیک مکانی ظریف‌تر و توان آشکارسازی آن سازگار است؛ این به‌تنهایی نشانهٔ آتش بیشتر نیست.",
-    seasonalSignal: "سیگنال فصلی", monthlyBySensor: "رکوردهای ماهانه به تفکیک حسگر", cellDayAgreement: "توافق سلول–روز", pairwiseOverlap: "همپوشانی دوتایی H3",
-    interpretationBoundary: "مرز تفسیر.", sensorBoundary: "این‌ها فقط رکوردهای توصیفی و پالایش‌شدهٔ FIRMS هستند؛ نه خروجی همسازشدهٔ Fyrora، پوشش کامل، امتیاز ناهنجاری یا شمار آتش‌های یکتا. دادهٔ مفقود هرگز صفر پر نمی‌شود.",
-    downloadMonthly: "CSV ماهانه", downloadH3: "CSV سلول‌های H3", downloadOverlap: "CSV همپوشانی",
-    pointExplorerEyebrow: "کاوشگر تعاملی نقاط · ۲۰۲۴", pointExplorerTitle: "آشکارسازی‌های ویکتوریا بر اساس تاریخ UTC", nasaStandardData: "دادهٔ استاندارد ناسا",
-    mapDate: "تاریخ UTC", allOverpasses: "همه", products: "محصولات", playDates: "پخش", pauseDates: "توقف",
-    visiblePoints: "رکوردهای نمایان", visibleFrp: "FRP ثبت‌شده", utcWindow: "بازهٔ برداشت UTC", mapLoading: "در حال بارگذاری آرشیو نقاط اعتبارسنجی‌شده…",
-    pointMapBoundary: "نقشه از پنجرهٔ مستطیلی مطالعهٔ ویکتوریا استفاده می‌کند، نه مرز سیاسی. هر نقطه یک رکورد آشکارسازی FIRMS است؛ نقاط همپوشان و بازدیدهای تکراری ماهواره، آتش‌های یکتا نیستند.",
-    challenge: "NASA Space Apps 2026 · نمونهٔ پژوهشی",
-    heroTitle: "همسازسازی نقاط داغ<br>MODIS و VIIRS.",
-    heroLede: "روشی بازتولیدپذیر برای مقایسهٔ تاریخی شمارش نقاط داغ Aqua MODIS و S-NPP VIIRS؛ روزهای بدون پشتیبانی صریحاً نامعلوم باقی می‌مانند.",
-    exploreData: "بازکردن کاوشگر فعالیت", downloadDataset: "دانلود CSV تقویم",
-    judgeMode: "حالت داوری", startTour: "شروع تور ۹۰ ثانیه‌ای داور",
-    darkMode: "حالت تیره", lightMode: "حالت روشن", activeWindow: "پنجرهٔ فعال", temporalSlice: "برش زمانی",
-    mapNote: "کادرهای واقعی مطالعه · نه مرزهای سیاسی", observations: "مشاهدهٔ منبع",
-    passes: "عبور ماهواره‌ای تطبیق‌یافته", years: "سال", studyWindows: "پنجرهٔ مطالعه",
-    improvement: "کاهش WAPE شمارش در آزمون ۲۰۲۰", coverageFirst: "سابقهٔ فعالیت حساس به پوشش",
-    explorerTitle: "مقایسهٔ فعالیت نقاط داغ بدون تبدیل دادهٔ ناموجود به صفر.",
-    explorerIntro: "تاریخچه از شمارش Aqua MODIS استفاده می‌کند و نمای آزمون ۲۰۲۰ از VIIRS همسازشده. خانهٔ هاشورخورده یعنی عبور مشتق از آشکارسازی تطبیق نیافته است؛ دادهٔ نقطه‌ای پوشش کامل ماهواره یا روز بدون آتش را اثبات نمی‌کند.",
-    region: "منطقه", year: "سال", overpass: "عبور", day: "روز", night: "شب",
-    exportView: "خروجی این نما", coverage: "پشتیبانی عبور تطبیق‌یافته", observedDays: "روزهای دارای پشتیبانی",
-    peakDay: "اوج مشاهده‌شده", source: "منبع سری", low: "کم", high: "زیاد",
-    historicalCount: "شمارش تاریخی، بدون امتیاز ناهنجاری",
-    noCoverage: "بدون عبور تطبیق‌یافته", cellHint: "برای دیدن شواهد هر روز، نشانگر یا فوکوس را روی خانه ببرید.",
-    aoiEyebrow: "محدودهٔ موردعلاقهٔ تعاملی", aoiTitle: "تحلیل مکان و زمان در غرب ایبری.",
-    aoiIntro: "یک کادر مختصاتی در پنجرهٔ شواهد غرب ایبری وارد کنید، بازهٔ UTC را برگزینید و فعالیت همسازشده را با میانهٔ همان روزهای تقویمی در سال‌های دیگر مقایسه کنید.",
-    aoiFull: "غرب ایبری", aoiPortugal: "تمرکز پرتغال", aoiGalicia: "تمرکز گالیسیا",
-    aoiWest: "طول غربی", aoiEast: "طول شرقی", aoiSouth: "عرض جنوبی", aoiNorth: "عرض شمالی",
-    aoiStart: "شروع · UTC", aoiEnd: "پایان · UTC", aoiRun: "تحلیل این محدوده", aoiExport: "دانلود CSV محدوده",
-    aoiBoundary: "دامنهٔ شواهد: ۲۰۱۷ تا ۲۰۲۰ و مستطیل نمایش‌داده‌شدهٔ غرب ایبری. مختصات بیرون این پنجره رد می‌شود. کلید ناسا هرگز به مرورگر فرستاده نمی‌شود.",
-    aoiMapNote: "مستطیل روشن محدودهٔ انتخابی شما و قاب بیرونی پنجرهٔ شواهد موجود است.",
-    aoiActivity: "فعالیت همسازشده", aoiSupported: "روزهای پشتیبانی‌شده", aoiMedian: "انتظار میانهٔ تاریخی", aoiAnomaly: "ناهنجاری نسبت به میانه",
-    aoiSeries: "فعالیت روزانه در محدودهٔ انتخابی", aoiHint: "برای ساخت سری روزانهٔ حساس به پوشش، تحلیل را اجرا کنید.",
-    aoiObserved: "سلول–روزهای پشتیبانی‌شده", aoiUnknown: "بدون پشتیبانی عبور تطبیق‌یافته", aoiInvalid: "کادر معتبر داخل غرب ایبری و بازهٔ تاریخ معتبر وارد کنید.",
-    aoiResultSummary: "روز دارای شواهد عبور تطبیق‌یافته؛ روزهای مفقود نامعلوم می‌مانند", aoiNoHistory: "روز تاریخی قابل‌مقایسه موجود نیست", aoiCsvReady: "CSV محدوده دانلود شد.",
-    europeEyebrow: "پایلوت میدانی اروپا", europeTitle: "سابقهٔ اعتبارسنجی غرب ایبری.",
-    europeIntro: "یک پنجرهٔ مستطیلی در پرتغال و غرب اسپانیا، پل تاریخی را در رژیم آتش اروپایی می‌آزماید. آزمون ۲۰۲۱ پیش از امتیازدهی به دادهٔ آن تعریف شد و آموزش یا انتخاب با داده‌های ۲۰۲۰–۲۱ انجام نشد.",
-    europeHoldout: "آزمون اروپایی ۲۰۲۰", europeWape: "WAPE شمارش، سلول–عبور مشترک",
-    europeTransfer: "حذف کامل اروپا از آموزش", europeTransferTitle: "انتقال به منطقهٔ دیده‌نشده",
-    europeIndependent: "آزمون مستقل سال ۲۰۲۱", europeIndependentTitle: "روش ثابت، سال اروپایی جدید",
-    downloadIndependent: "دانلود معیارهای آزمون ۲۰۲۱", matchedPasses: "عبور تطبیق‌یافته",
-    europeLocked2022: "آزمون از پیش ثبت‌شدهٔ ۲۰۲۲", europeLocked2022Title: "مدل فعلی در سال جدید دقیق‌تر ماند",
-    downloadLocked2022: "دانلود نتیجهٔ تمام مدل‌ها در ۲۰۲۲",
-    noPromotion2022: "مدل‌های فقط مبتنی بر VIIRS ارتقا نیافتند",
-    europeLocked2023: "آزمون قفل‌شدهٔ هندسه در ۲۰۲۳", europeLocked2023Title: "بهبود کوچک مدل از دروازهٔ عدم‌قطعیت عبور نکرد",
-    downloadLocked2023: "دانلود معیارهای مدل در ۲۰۲۳", downloadIntervals2023: "دانلود پوشش بازه‌ها",
-    geometryNotPromoted: "WAPE مدل هندسه‌آگاه", intervalCoverage2023: "پوشش واقعی بازهٔ ۹۰٪",
-    noPromotion2023: "ارتقا نیافت؛ بازهٔ اختلاف MAE شامل صفر است",
-    supportGap2022: "شکاف پشتیبانی حسگرها در ۲۰۲۲", supportGapTitle: "بعضی سلول‌های دارای آشکارسازی MODIS در همان سلول آشکارسازی VIIRS ندارند",
-    supportGapNote: "سلول–عبورهای دارای آشکارسازی MODIS و بدون آشکارسازی VIIRS در همان سلول؛ این عدد فقط برای عبورهای تطبیق‌یافتهٔ مشتق از آشکارسازی است، نه برآورد فراخوانی همهٔ عبورها.",
-    downloadSupportAudit: "دانلود ممیزی پشتیبانی هفت‌ساله",
-    day9Eyebrow: "آزمون بیرونی قفل‌شدهٔ ۲۰۲۴", day9Title: "آزمون انتقال قفل‌شدهٔ ۲۰۲۴.",
-    day9Intro: "مدل ۲۰۱۷ تا ۲۰۱۹ پیش از بازکردن داده‌های ۲۰۲۴ ساوانای جنوب آفریقا، جنگل شمالی سیبری شرقی و جنوب‌شرق استرالیا قفل شد.",
-    day9Pooled: "WAPE تجمیعی شمارش", day9PooledTitle: "انتقال مستقل مکانی–زمانی",
-    day9Africa: "ساوانای جنوب آفریقا", day9Siberia: "جنگل شمالی سیبری شرقی", day9Australia: "جنوب‌شرق استرالیا",
-    day9Passed: "دروازهٔ قفل‌شده گذشت", day9Failed: "دروازهٔ قفل‌شده نگذشت", day9Dates: "تاریخ UTC",
-    day9Download: "دانلود کامل معیارهای ۲۰۲۴",
-    day9Boundary: "دروازهٔ قفل‌شده گذشت، اما WAPE در دو منطقه هنوز بالاتر از ۱ است. نتیجه انتقال فراتر از پنجره‌های اولیه را پشتیبانی می‌کند؛ دقت جهانی یا عملیاتی را اثبات نمی‌کند.",
-    day10Eyebrow: "آزمون پیامد EFFIS قفل‌شدهٔ ۲۰۲۳", day10Title: "آزمون پیامد EFFIS: دروازه پذیرفته نشد.",
-    day10Intro: "خروجی ازپیش‌قفل‌شدهٔ غرب ایبری بدون آموزش دوباره یا انتخاب روش خوش‌نتیجه‌تر به رخدادهای سطح سوختهٔ EFFIS پیوند خورد.",
-    day10Association: "ارتباط مساحت رخداد · اسپیرمن ρ", day10AssociationTitle: "فعالیت همسازشده در برابر سطح سوختهٔ نقشه‌برداری‌شده",
-    day10Events: "رخداد واجد شرایط EFFIS", day10NullTitle: "آزمون null با جابه‌جایی تقویم", day10SemiIndependent: "نیمه‌مستقل",
-    day10BoundaryTitle: "نه حقیقت زمینی", day10Boundary: "سیگنال زمانی از null تقویم جابه‌جا بهتر بود، اما ρ به آستانهٔ قفل‌شدهٔ ۰٫۳۰ نرسید و بازهٔ bootstrap صفر را قطع کرد. EFFIS نیز از شواهد ماهواره‌ای استفاده می‌کند؛ پس این اعتبارسنجی میدانی مستقل نیست.",
-    day10Download: "دانلود معیارهای ارتباط EFFIS", day10Failed: "دروازهٔ قفل‌شده رد شد", day10Passed: "دروازهٔ قفل‌شده گذشت", day10Ci: "بازهٔ ۹۵٪ bootstrap رخداد برای اسپیرمن همسازشده",
-    day10RawViirs: "VIIRS خام", day10Harmonized: "همسازشده", day10Threshold: "آستانهٔ قفل‌شده", day10Permutation: "p یک‌طرفهٔ جابه‌جایی تقویم",
-    passportEyebrow: "شناسنامهٔ شواهد", passportTitle: "دفتر ادعاها و مرز شواهد.",
-    passportIntro: "دفتر ثبت ماشین‌خوان، هر ادعا را به دامنه، محدودیت، مصنوع منبع و SHA-256 پیوند می‌دهد. رتبه‌ها منشأ شواهدند، نه احتمال ساختگی.",
-    passportSwath: "ممیزی full-swath", passportSwathTitle: "پشتیبانی مستقیم مشاهده", passportPassed: "عبور کرد",
-    passportSwathNote: "عبور ممیزی‌شدهٔ MODIS/VIIRS در دو خانوادهٔ حسگر",
-    passportClaims: "ادعاهای ممیزی‌شده", passportClaimsTitle: "پشتیبانی‌شده، ردشده و محدود", passportSupported: "پشتیبانی‌شده", passportUnsupported: "ردشده یا بدون پشتیبانی",
-    passportStage: "مرحلهٔ انتشار", passportStageTitle: "پیش‌نمایش پژوهشی—نه هشدار اضطراری", passportResearch: "پیش‌نمایش پژوهشی",
-    passportBoundary: "دروازهٔ پیامد بیرونی رد شد؛ بنابراین آمادگی عملیاتی عمداً false است. این صداقت در کد و تست اجبار شده است.",
-    passportDownload: "دانلود شناسنامهٔ شواهد", passportGeojson: "دانلود GeoJSON مشاهده", passportOpenapi: "قرارداد OpenAPI",
-    modisDetections: "آشکارسازی MODIS",
-    openEurope: "کاوش تقویم غرب ایبری", downloadEurope: "دانلود CSV پایلوت اروپا", openEffis: "بازکردن Copernicus EFFIS ↗",
-    europeBoundary: "فعالیت تاریخی نقاط داغ برای برنامه‌ریزی و پژوهش؛ نه مساحت سوخته، آشکارسازی زندهٔ حادثه یا هشدار ایمنی. EFFIS مرجع عملیاتی اروپا است.",
-    testCells: "سلول آزمون", coveredSlots: "بازهٔ تطبیق‌یافته",
-    untouchedTest: "آزمون زمانی ۲۰۲۰", evidenceTitle: "اعتبارسنجی زمانی و مکانی.",
-    evidenceIntro: "در امتیاز چهارمنطقه‌ای، ۲۰۲۰ از برازش و انتخاب کنار گذاشته شد؛ در آزمون جداگانهٔ اروپایی ۲۰۲۱، هر دو سال ۲۰۲۰ و ۲۰۲۱ از این مراحل حذف شدند. انتقال مکانی نیز هر بار یک منطقهٔ کامل را کنار می‌گذارد.",
-    primaryMetric: "معیار اصلی · WAPE شمارش", temporalHoldout: "آزمون زمانی",
-    rankPreservation: "حفظ رتبه", spearmanTitle: "همبستگی اسپیرمن",
-    spearmanCopy: "مقدار بالاتر یعنی مدل بهتر حفظ می‌کند که فعالیت در کدام سلول‌های مشترک نسبتاً بیشتر بوده است.",
-    unseenGeography: "جغرافیای کاملاً دیده‌نشده", transferTitle: "انتقال با حذف یک منطقه",
-    honestBoundary: "مرز صادقانه", experimental: "آزمایشی", frpTitle: "FRP عملیاتی نیست",
-    frpCopy: "خطای کلی FRP کمتر شد، اما شکست در زیرگروه‌ها باقی است. Fyrora، FRP را به‌عنوان محصول آمادهٔ استقرار عرضه نمی‌کند.",
-    traceable: "ردیابی‌پذیر از ابتدا", methodTitle: "روش پردازش و اعتبارسنجی.",
-    methodOneTitle: "تطبیق عبورهای آشکارسازی", methodOneCopy: "عبورهای مشتق از آشکارسازی Aqua MODIS و S-NPP VIIRS بر اساس منطقه، تاریخ، روز/شب و تحمل زمانی جفت می‌شوند.",
-    methodTwoTitle: "زمین مشترک", methodTwoCopy: "هر دو حسگر پیش از مقایسه روی سلول‌های هم‌مساحت ۱۰ کیلومتری تجمیع می‌شوند.",
-    methodThreeTitle: "حفاظت از آینده", methodThreeCopy: "برازش روی ۲۰۱۷–۱۸ و انتخاب روی ۲۰۱۹؛ حذف ۲۰۲۰ از هر دو مرحله و ثبت تاریخچهٔ تکرارها.",
-    methodFourTitle: "نمایش عدم‌قطعیت", methodFourCopy: "بوت‌استرپ بر اساس تاریخ، گزارش زیرگروه‌ها، حفظ null پوشش و انتشار شواهد ماشین‌خوان.",
-    provenanceTitle: "ورودی‌های دقیق داشبورد را ممیزی کنید", provenanceCopy: "هر عدد مستقرشده از جدول‌های کامیت‌شده تولید می‌شود. هش SHA-256 تحویل داده را قابل‌راستی‌آزمایی می‌کند.",
-    openManifest: "بازکردن مانیفست", openApi: "بازکردن endpoint دادهٔ JSON",
-    architectureEyebrow: "معماری بازتولیدپذیر", architectureTitle: "مسیر داده و پردازش",
-    architectureOne: "دادهٔ استاندارد NASA FIRMS", architectureOneDetail: "Aqua MODIS + S-NPP VIIRS",
-    architectureTwo: "تطبیق عبورهای آشکارسازی", architectureTwoDetail: "UTC، روز/شب، حداکثر ۶۰ دقیقه",
-    architectureThree: "شبکهٔ زمینی مشترک ۱۰ کیلومتری", architectureThreeDetail: "جفت‌های سلول–عبور هم‌مساحت",
-    architectureFour: "همسازسازی حفاظت‌شده", architectureFourDetail: "برازش ۲۰۱۷–۱۸ · انتخاب ۲۰۱۹ · آزمون ۲۰۲۰",
-    architectureFive: "محصول حساس به پوشش", architectureFiveDetail: "تقویم · CSV · هش‌ها",
-    judgeEyebrow: "فهرست شواهد پروژه", judgeTitle: "فهرست شواهد برای داوران",
-    judgeIntro: "برای هر معیار داوری، مدرک مرتبط در برنامه مشخص شده است.",
-    impactTitle: "اثرگذاری", impactCopy: "نمای تاریخی سازگار به مدیران زمین کمک می‌کند الگوهای فصلی و دوره‌های غیرعادی را بدون اشتباه‌گرفتن تغییر حسگر با تغییر آتش ببینند.",
-    creativityTitle: "خلاقیت", creativityCopy: "تقویم روزهای بدون پشتیبانی عبورهای مشتق از آشکارسازی را آشکار می‌کند و آن‌ها را بی‌صدا «بدون آتش» نمی‌نامد.",
-    validityTitle: "اعتبار", validityCopy: "آزمون سال آینده، bootstrap بلوکی تاریخ و حذف کامل یک منطقه، ادعای مدل را ابطال‌پذیر می‌کنند.",
-    relevanceTitle: "ارتباط با چالش", relevanceCopy: "کاربر مختصات و بازهٔ UTC را وارد می‌کند، فعالیت را با میانهٔ تاریخی می‌سنجد و بدون افشای کلید API خروجی می‌گیرد.",
-    presentationTitle: "ارائه", presentationCopy: "روایت دوزبانه، دسترسی صفحه‌کلید، رمزگذاری رنگ‌وهاشور و endpoint قابل‌ممیزی، علم را خوانا نگه می‌دارند.",
-    seeCalendar: "دیدن تقویم ←", seeNoData: "بررسی no-data ←", seeEvidence: "دیدن شواهد ←", seeMethod: "دیدن روش ←", seeAoi: "آزمایش محدوده‌ساز ←",
-    startTourShort: "اجرای تور داور ←", officialSources: "منابع رسمی", challengeBrief: "صورت چالش ↗",
-    visibleProof: "مدرک قابل‌مشاهده:", closeTour: "بستن", back: "قبلی", next: "بعدی", finish: "پایان",
-    footerCopy: "نمونهٔ داده‌باز · سامانهٔ هشدار اضطراری نیست",
-    modisObserved: "مشاهدهٔ Aqua MODIS", viirsHarmonized: "VIIRS همسازشده در آزمون", baseline: "خط‌پایهٔ نسبت ثابت",
-    model: "مدل منتخب", bootstrap: "۵۰۰ تکرار بوت‌استرپ بلوکی تاریخ",
-    ci: "بازهٔ اطمینان ۹۵٪ برای MAE مدل منهای خط‌پایه", probability: "احتمال بهتر بودن مدل",
-    activity: "شمارش فعالیت", passesShort: "عبور تطبیق‌یافته", percentile: "صدک تاریخی",
-    robustZ: "امتیاز z مقاوم", missingDetail: "عبور مشتق از آشکارسازی جفت نشده است. پوشش ماهواره از این داده معلوم نیست و فعالیت در این نمونه نامعلوم می‌ماند.",
-    coverageOf: "از روزهای تقویم", improvementShort: "بهبود", fileReady: "CSV فیلترشده دانلود شد.",
-  },
+  tr: window.FYRORA_TR,
 };
 
 const judgeSteps = {
@@ -282,19 +148,19 @@ const judgeSteps = {
     { target: "#architecture", kicker: "05 · Reproducibility", title: "The path from source to claim is explicit.", copy: "Pass matching, a shared equal-area grid, guarded modeling, null semantics and SHA-256 provenance form one auditable pipeline.", proof: "Open JSON, CSV, model card, source code and hashed manifest." },
     { target: "#europe", kicker: "06 · European use", title: "Western Iberia validation", copy: "Western Iberia is visible in the calendar. Its holdout and unseen-region scores are published alongside the boundary of a historical research product.", proof: "The European pilot uses real NASA FIRMS observations and links to the operational EFFIS reference." },
   ],
-  fa: [
-    { target: "#top", kicker: "۰۱ · مسئله", title: "دو نسل ماهواره‌ای خودبه‌خود یک رکورد آتش نمی‌سازند.", copy: "MODIS و VIIRS در تفکیک مکانی، حساسیت و فرصت مشاهده تفاوت دارند. چسباندن خام داده‌ها می‌تواند روندی جعلی بسازد.", proof: "فهرست مشاهدات NASA FIRMS چهار سال و چهار پنجرهٔ مطالعه را پوشش می‌دهد." },
-    { target: "#explorer", kicker: "۰۲ · محصول", title: "روزهای بدون پشتیبانی قابل‌مشاهده می‌مانند.", copy: "تقویم صفر روی عبور تطبیق‌یافته را از روز بدون جفت عبور مشتق از آشکارسازی جدا می‌کند و کنترل منطقه، سال، روز/شب و CSV می‌دهد.", proof: "خانه‌های هاشورخورده، برچسب پویای منبع و ردیف‌های ماشین‌خوان تقویم." },
-    { target: "#aoi-builder", kicker: "۰۳ · ارتباط", title: "مختصات و تاریخ به یک پرسش تصمیم تبدیل می‌شوند.", copy: "کاربر محدوده و بازهٔ UTC را وارد می‌کند، فعالیت همسازشده را با میانهٔ تاریخی می‌سنجد و سری روزانه را خروجی می‌گیرد.", proof: "گردش‌کار واقعی، امن برای کلید و حساس به روزهای بدون پشتیبانی است." },
-    { target: "#evidence", kicker: "۰۴ · اعتبار", title: "نتیجه پس از منجمدشدن مدل آزموده می‌شود.", copy: "برازش روی ۲۰۱۷–۱۸ و انتخاب روی ۲۰۱۹ است؛ ۲۰۲۰ از هر دو کنار گذاشته می‌شود. سپس هر منطقه کامل حذف می‌شود تا انتقال مکانی سنجیده شود.", proof: "WAPE شمارش ۲۰۲۰ و تک‌تک نتایج مناطق دیده‌نشده در پایین منتشر شده‌اند." },
-    { target: "#architecture", kicker: "۰۵ · بازتولیدپذیری", title: "مسیر منبع تا ادعا صریح است.", copy: "تطبیق عبور، شبکهٔ هم‌مساحت، مدل حفاظت‌شده، معنای null و منشأ SHA-256 یک خط لولهٔ قابل‌ممیزی می‌سازند.", proof: "JSON، CSV، model card، کد منبع و manifest هش‌شده باز هستند." },
-    { target: "#europe", kicker: "۰۶ · کاربرد اروپا", title: "پایلوت اروپایی با آزمون انتقال قابل‌اندازه‌گیری.", copy: "غرب ایبری در تقویم قابل‌کاوش است. امتیاز سال آزمون و منطقهٔ کاملاً دیده‌نشده در کنار مرزهای محصول پژوهشی منتشر شده‌اند.", proof: "پایلوت اروپا از مشاهدات واقعی NASA FIRMS استفاده می‌کند و به مرجع عملیاتی EFFIS پیوند می‌دهد." },
+  tr: [
+    { target: "#top", kicker: "01 · Problem", title: "İki uydu nesli kendiliğinden tek bir yangın kaydı oluşturmaz.", copy: "MODIS ve VIIRS çözünürlük, duyarlılık ve gözlem olanağı bakımından farklıdır. Ham birleştirme sahte bir eğilim üretebilir.", proof: "NASA FIRMS kaynak envanteri dört yılı ve dört çalışma penceresini kapsar." },
+    { target: "#explorer", kicker: "02 · Ürün", title: "Desteklenmeyen günler görünür kalır.", copy: "Takvim, eşleşmiş geçişteki sıfırı tespit-türevli eşleşmenin olmadığı günden ayırır; bölge, yıl, gündüz/gece kontrolleri ve CSV sağlar.", proof: "Taranmış desteklenmeyen hücreler, dinamik kaynak etiketi ve makinece okunabilir takvim satırları." },
+    { target: "#aoi-builder", kicker: "03 · İlgililik", title: "Koordinatlar ve tarihler bir karar sorusuna dönüşür.", copy: "Kullanıcı sınırlı bir AOI ve UTC aralığı girer, uyumlaştırılmış etkinliği tarihsel medyanla karşılaştırır ve kesin günlük seriyi dışa aktarır.", proof: "İş akışı tarayıcıda gerçektir, anahtarı korur ve desteklenmeyen günleri bilinmiyor bırakır." },
+    { target: "#evidence", kicker: "04 · Geçerlilik", title: "Sonuç, model dondurulduktan sonra sınanır.", copy: "2017–18'de uyumlar, 2019'da seçer ve 2020'yi iki adımdan da çıkarırız. Ardından görülmemiş coğrafyaya aktarımı ölçmek için her bölgeyi bütünüyle dışarıda tutarız.", proof: "2020 sayım WAPE ve tüm görülmemiş bölge sonuçları aşağıda yayımlanır." },
+    { target: "#architecture", kicker: "05 · Yeniden üretilebilirlik", title: "Kaynaktan iddiaya giden yol açıktır.", copy: "Geçiş eşleştirme, ortak eş-alan ızgarası, korumalı modelleme, null semantiği ve SHA-256 kökeni denetlenebilir bir hat oluşturur.", proof: "JSON, CSV, model kartı, kaynak kodu ve özetli manifest açıktır." },
+    { target: "#europe", kicker: "06 · Avrupa kullanımı", title: "Batı İberya doğrulaması", copy: "Batı İberya takvimde incelenebilir. Ayrılmış test ve görülmemiş bölge puanları, tarihsel araştırma ürününün sınırlarıyla birlikte yayımlanır.", proof: "Avrupa pilotu gerçek NASA FIRMS gözlemlerini kullanır ve operasyonel EFFIS referansına bağlanır." },
   ],
 };
 
 const monthNames = {
   en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-  fa: ["ژانویه", "فوریه", "مارس", "آوریل", "مه", "ژوئن", "ژوئیه", "اوت", "سپتامبر", "اکتبر", "نوامبر", "دسامبر"],
+  tr: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
 };
 
 function savedTheme() {
@@ -310,12 +176,12 @@ const globeRuntime = { longitude: -18, latitude: 12, phase: 0, frame: 0, lastTim
 const sensorRuntime = { points: [] };
 const victoriaRuntime = { data: null, map: null, layer: null, renderer: null, timer: null, loading: false };
 const $ = (selector) => document.querySelector(selector);
-const t = (key) => translations[state.lang][key] || key;
-const number = (value, digits = 0) => new Intl.NumberFormat(state.lang === "fa" ? "fa-IR" : "en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value);
+const t = (key) => translations[state.lang][key] || translations.en[key] || key;
+const number = (value, digits = 0) => new Intl.NumberFormat(state.lang === "tr" ? "tr-TR" : "en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value);
 
 function regionName(regionId) {
   const region = state.data.regions.find((item) => item.id === regionId);
-  if (region) return state.lang === "fa" ? region.name_fa : region.name_en;
+  if (region) return region.name_en;
   return regionId;
 }
 
@@ -330,13 +196,13 @@ function applyTheme() {
 
 function applyLanguage() {
   document.documentElement.lang = state.lang;
-  document.documentElement.dir = state.lang === "fa" ? "rtl" : "ltr";
+  document.documentElement.dir = "ltr";
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     const value = t(node.dataset.i18n);
     if (value.includes("<")) node.innerHTML = value;
     else node.textContent = value;
   });
-  $("#language-toggle").textContent = state.lang === "en" ? "فارسی" : "English";
+  $("#language-toggle").textContent = state.lang === "en" ? "Türkçe" : "English";
   applyTheme();
   $("#study-scope-label").textContent = `${t("years")} · ${number(state.data.meta.studyRegions)} ${t("studyWindows")}`;
   renderSelectors();
@@ -407,7 +273,7 @@ function renderTeamSensorLab() {
     }).join("");
     return `<div class="sensor-month"><div class="sensor-month-bar">${segments}</div><span>${number(row.month)}</span></div>`;
   }).join("");
-  $("#sensor-overlap").innerHTML = pilot.pairwiseOverlap.map((row) => `<div><span>${productLabel(row.product_a)} ↔ ${productLabel(row.product_b)}</span><strong>${number(row.jaccard_similarity * 100, 1)}%</strong><small>${number(row.shared_cell_days)} ${state.lang === "fa" ? "سلول–روز مشترک" : "shared cell-days"}</small></div>`).join("");
+  $("#sensor-overlap").innerHTML = pilot.pairwiseOverlap.map((row) => `<div><span>${productLabel(row.product_a)} ↔ ${productLabel(row.product_b)}</span><strong>${number(row.jaccard_similarity * 100, 1)}%</strong><small>${number(row.shared_cell_days)} ${state.lang === "tr" ? "ortak hücre-gün" : "shared cell-days"}</small></div>`).join("");
   requestAnimationFrame(drawSensorMap);
 }
 
@@ -447,8 +313,8 @@ function renderVictoriaPoints() {
   $("#victoria-frp").textContent = rows.length ? `${number(frp, 1)} MW` : "—";
   $("#victoria-time").textContent = minutes.length ? `${formatMinute(Math.min(...minutes))}–${formatMinute(Math.max(...minutes))}` : "—";
   $("#victoria-map-status").textContent = rows.length
-    ? `${dateText} · ${number(rows.length)} ${state.lang === "fa" ? "رکورد آشکارسازی" : "detection records"}`
-    : `${dateText} · ${state.lang === "fa" ? "رکوردی برای فیلتر انتخاب‌شده وجود ندارد" : "no records for the selected filter"}`;
+    ? `${dateText} · ${number(rows.length)} ${state.lang === "tr" ? "tespit kaydı" : "detection records"}`
+    : `${dateText} · ${state.lang === "tr" ? "seçilen filtre için kayıt yok" : "no records for the selected filter"}`;
   $("#victoria-date-range").value = selectedDay;
 }
 
@@ -501,7 +367,7 @@ async function loadVictoriaExplorer() {
     victoriaRuntime.map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], { padding: [12, 12] });
     renderVictoriaPoints();
   } catch (error) {
-    $("#victoria-map-status").textContent = `${state.lang === "fa" ? "بارگذاری نقشه ناموفق بود" : "Map loading failed"}: ${error.message}`;
+    $("#victoria-map-status").textContent = `${state.lang === "tr" ? "Harita yüklenemedi" : "Map loading failed"}: ${error.message}`;
   } finally {
     victoriaRuntime.loading = false;
   }
@@ -546,7 +412,7 @@ function calendarRows() {
 
 function renderSelectors() {
   const regionSelect = $("#region-select");
-  regionSelect.innerHTML = state.data.regions.map((region) => `<option value="${region.id}"${region.id === state.regionId ? " selected" : ""}>${state.lang === "fa" ? region.name_fa : region.name_en}</option>`).join("");
+  regionSelect.innerHTML = state.data.regions.map((region) => `<option value="${region.id}"${region.id === state.regionId ? " selected" : ""}>${region.name_en}</option>`).join("");
   const yearSelect = $("#year-select");
   yearSelect.innerHTML = state.data.meta.years.map((year) => `<option value="${year}"${year === state.year ? " selected" : ""}>${number(year)}</option>`).join("");
   document.querySelector(`input[name="daynight"][value="${state.daynight}"]`).checked = true;
@@ -909,7 +775,7 @@ function drawGlobe(time = performance.now()) {
         context.stroke();
         context.shadowBlur = 0;
         context.fillStyle = "rgba(231, 255, 249, .92)";
-        context.font = state.lang === "fa" ? "650 12px Vazirmatn, Tahoma, sans-serif" : "600 10px ui-monospace, monospace";
+        context.font = state.lang === "tr" ? "650 11px Inter, system-ui, sans-serif" : "600 10px ui-monospace, monospace";
         context.textAlign = "left";
         context.fillText(regionName(region.id), center.x + 10, center.y - 8);
       }
@@ -1045,17 +911,32 @@ function renderAoiResult(result) {
   }).join("");
 }
 
-function runAoi(event) {
+async function runAoi(event) {
   event?.preventDefault();
   const query = aoiInputs();
+  const runButton = $("#aoi-run");
+  runButton.disabled = true;
+  runButton.textContent = t("aoiRunning");
+  $("#aoi-status").textContent = "";
   renderAoiMap();
   if (!validAoi(query)) {
     $("#aoi-error").textContent = t("aoiInvalid");
+    runButton.disabled = false;
+    runButton.textContent = t("aoiRun");
     return;
   }
   $("#aoi-error").textContent = "";
-  state.aoiSeries = aggregateAoi(query);
-  renderAoiResult(state.aoiSeries);
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  try {
+    state.aoiSeries = aggregateAoi(query);
+    renderAoiResult(state.aoiSeries);
+    $("#aoi-status").textContent = t("aoiComplete");
+    $("#aoi-results").focus({ preventScroll: true });
+    $("#aoi-results").scrollIntoView({ behavior: "smooth", block: "center" });
+  } finally {
+    runButton.disabled = false;
+    runButton.textContent = t("aoiRun");
+  }
 }
 
 function downloadAoi() {
@@ -1103,7 +984,7 @@ function renderJudgeStep(shouldScroll = true) {
   $("#judge-tour-copy").textContent = step.copy;
   $("#judge-tour-proof").textContent = step.proof;
   if (state.judgeStep === 0) $("#judge-tour-proof").textContent = `${number(state.data.meta.observations)} ${t("observations")} · ${number(state.data.meta.studyRegions)} ${t("studyWindows")}.`;
-  if (state.judgeStep === 1) $("#judge-tour-proof").textContent = `${number(state.data.meta.calendarRows)} ${state.lang === "fa" ? "ردیف تقویم ماشین‌خوان با معنای پوشش" : "coverage-aware machine-readable calendar rows"}.`;
+  if (state.judgeStep === 1) $("#judge-tour-proof").textContent = `${number(state.data.meta.calendarRows)} ${state.lang === "tr" ? "kapsamı gözeten makinece okunabilir takvim satırı" : "coverage-aware machine-readable calendar rows"}.`;
   $("#tour-back").disabled = state.judgeStep === 0;
   $("#tour-next").textContent = state.judgeStep === steps.length - 1 ? t("finish") : t("next");
 }
@@ -1166,7 +1047,7 @@ function bindStudyMapMotion() {
 }
 
 function bindEvents() {
-  $("#language-toggle").addEventListener("click", () => { state.lang = state.lang === "en" ? "fa" : "en"; applyLanguage(); });
+  $("#language-toggle").addEventListener("click", () => { state.lang = state.lang === "en" ? "tr" : "en"; applyLanguage(); });
   $("#theme-toggle").addEventListener("click", () => {
     state.theme = state.theme === "dark" ? "light" : "dark";
     try { localStorage.setItem("fyrora-theme", state.theme); } catch (_) { /* Keep the in-memory theme. */ }
@@ -1214,7 +1095,7 @@ function bindEvents() {
     }, null);
     if (closest && closest.distance < 900) {
       const cell = closest.point.cell;
-      $("#sensor-cell-detail").textContent = `${cell.h3} · ${number(cell.count)} ${state.lang === "fa" ? "رکورد" : "records"}`;
+      $("#sensor-cell-detail").textContent = `${cell.h3} · ${number(cell.count)} ${state.lang === "tr" ? "kayıt" : "records"}`;
     }
   });
   sensorCanvas.addEventListener("pointerleave", () => { $("#sensor-cell-detail").textContent = t("mapCellHint"); });
@@ -1232,8 +1113,8 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if ($("#judge-tour").hidden) return;
     if (event.key === "Escape") closeJudgeTour();
-    if (event.key === "ArrowRight") state.lang === "fa" ? previousJudgeStep() : nextJudgeStep();
-    if (event.key === "ArrowLeft") state.lang === "fa" ? nextJudgeStep() : previousJudgeStep();
+    if (event.key === "ArrowRight") nextJudgeStep();
+    if (event.key === "ArrowLeft") previousJudgeStep();
   });
   bindStudyMapMotion();
 }

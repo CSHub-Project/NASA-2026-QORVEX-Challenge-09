@@ -12,8 +12,8 @@ One row represents `region × UTC date × day/night`.
 | `series_source` | string/null | `Aqua MODIS observed` or `VIIRS harmonized holdout` |
 | `has_matched_coverage` | boolean | Whether a matched observation opportunity exists |
 | `year`, `month`, `day` | integer | Calendar components for product queries |
-| `percentile_vs_history` | float/null | Empirical percentile against covered days in the same historical month |
-| `robust_z_vs_history` | float/null | `0.6745 × (value − median) / MAD` for the same historical month |
+| `percentile_vs_history` | float/null | Empirical percentile against covered days in the same month. Historical years use a leave-one-year-out reference; 2020 uses all 2017–2019 history. |
+| `robust_z_vs_history` | float/null | `0.6745 × (value − median) / MAD` using the same leakage-safe reference. It remains null when the reference MAD is zero. |
 
 ## Null semantics
 

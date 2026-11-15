@@ -86,28 +86,50 @@ def build_calendar_ready(
     history_mask = calendar["observation_date"].dt.date < test_start
     holdout_mask = calendar["observation_date"].dt.date >= test_start
     group_columns = ["region_id", "daynight", "month"]
-    historical_groups = calendar[history_mask & calendar["has_matched_coverage"]].groupby(
-        group_columns
-    )
-    for keys, group in historical_groups:
-        values = group["activity_count"].dropna().to_numpy(float)
-        if not len(values):
-            continue
-        median = float(np.median(values))
-        mad = float(np.median(np.abs(values - median)))
-        target = holdout_mask.copy()
-        for column, value in zip(group_columns, keys):
-            target &= calendar[column] == value
-        target &= calendar["has_matched_coverage"]
+    covered_history = calendar[history_mask & calendar["has_matched_coverage"]]
+
+    def score_target(target: pd.Series, reference: pd.Series) -> None:
+        values = reference.dropna().to_numpy(float)
+        if not len(values) or not target.any():
+            return
         target_values = calendar.loc[target, "activity_count"].to_numpy(float)
         calendar.loc[target, "percentile_vs_history"] = [
             100.0 * (np.sum(values <= item) + 0.5) / (len(values) + 1.0)
             for item in target_values
         ]
+        median = float(np.median(values))
+        mad = float(np.median(np.abs(values - median)))
         if mad > 0:
             calendar.loc[target, "robust_z_vs_history"] = 0.6745 * (
                 target_values - median
             ) / mad
+
+    for keys, group in covered_history.groupby(group_columns):
+        group_target = pd.Series(True, index=calendar.index)
+        for column, value in zip(group_columns, keys):
+            group_target &= calendar[column] == value
+
+        # Score each historical year against the other historical years only.
+        # This leave-one-year-out reference keeps the displayed anomaly useful
+        # without allowing the target year's own observations into its baseline.
+        for historical_year in sorted(group["year"].unique()):
+            target = (
+                group_target
+                & history_mask
+                & calendar["has_matched_coverage"]
+                & (calendar["year"] == historical_year)
+            )
+            reference = group.loc[
+                group["year"] != historical_year, "activity_count"
+            ]
+            score_target(target, reference)
+
+        # The held-out year remains scored against every covered historical
+        # observation in the matching region, overpass and calendar month.
+        score_target(
+            group_target & holdout_mask & calendar["has_matched_coverage"],
+            group["activity_count"],
+        )
     return calendar
 
 
