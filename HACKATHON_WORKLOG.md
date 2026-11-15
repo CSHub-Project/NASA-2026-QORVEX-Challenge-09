@@ -40,12 +40,19 @@
 - Rebuilt the seven-slide judge deck with simpler titles, QORVEX metadata and
   portable embedded chart workbooks. Reviewed all seven rendered pages.
 - Ran the complete site build and test suite. All 44 automated tests passed.
+- Added a bilingual in-page application guide, a QORVEX contributor section,
+  and a team credit in the footer. Contributor names and roles are limited to
+  work verified in the repository history.
+- Prepared a copy-ready Project Submission draft with the validated metrics,
+  data sources, limitations, public links, and explicit unresolved roster,
+  video, and eligibility fields.
 
 ## Remaining event priorities
 
-1. Run the complete test suite and rebuild `dist/` after the final brand and copy review.
-2. Record the exact commit and push it to the private personal repository.
-3. Rehearse the updated three-minute script on a narrow/mobile screen.
+1. Confirm the fourth official team member's name and shipped contribution, and
+   confirm the preferred display name for GitHub user `parsaparsayi`.
+2. Obtain written eligibility guidance from the Van Local Lead.
+3. Record and verify the public demonstration video.
 4. Review the live Project tab and copy each verified field into the official form.
 5. Before final judging, make only the approved submission repository and demo
    publicly accessible and verify every link in a signed-out browser.

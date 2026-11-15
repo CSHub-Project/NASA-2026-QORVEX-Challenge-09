@@ -8,9 +8,9 @@
     <title>Fyrora — MODIS × VIIRS</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=1.9.4">
-    <link rel="stylesheet" href="styles.css?v=team-map-2">
+    <link rel="stylesheet" href="styles.css?v=guide-team-1">
     <script src="vendor/leaflet/leaflet.js?v=1.9.4" defer></script>
-    <script src="app.js?v=team-map-2" defer></script>
+    <script src="app.js?v=guide-team-1" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#explorer">Skip to explorer</a>
@@ -26,6 +26,8 @@
         <a href="#europe" data-i18n="navEurope">Europe pilot</a>
         <a href="#evidence" data-i18n="navEvidence">Evidence</a>
         <a href="#method" data-i18n="navMethod">Method</a>
+        <a href="#guide" data-i18n="navGuide">Guide</a>
+        <a href="#team" data-i18n="navTeam">Team</a>
       </nav>
       <div class="header-actions">
         <button class="judge-trigger" id="judge-trigger" type="button" data-i18n="judgeMode">Judge mode</button>
@@ -68,6 +70,24 @@
           <div><dt id="stat-years">—</dt><dd id="study-scope-label">years · study windows</dd></div>
           <div><dt id="stat-improvement">—</dt><dd data-i18n="improvement">lower count WAPE on 2020 holdout</dd></div>
         </dl>
+      </section>
+
+      <section class="guide section-shell" id="guide" aria-labelledby="guide-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="guideEyebrow">Application guide</p>
+            <h2 id="guide-title" data-i18n="guideTitle">How to inspect Fyrora</h2>
+          </div>
+          <p data-i18n="guideIntro">Use this route for a quick review, or start Judge mode for a guided 90-second tour.</p>
+        </div>
+        <ol class="guide-flow">
+          <li><span>01</span><div><h3 data-i18n="guideOneTitle">Start with the activity calendar</h3><p data-i18n="guideOneCopy">Choose a region, year and overpass. Hatched dates lack matched-pass support and remain unknown.</p></div><a href="#explorer" data-i18n="guideOpenCalendar">Open calendar</a></li>
+          <li><span>02</span><div><h3 data-i18n="guideTwoTitle">Inspect the Victoria sensor record</h3><p data-i18n="guideTwoCopy">Filter real 2024 FIRMS records by date, day or night, and satellite product. These records are descriptive, not unique-fire counts.</p></div><a href="#sensor-lab" data-i18n="guideOpenVictoria">Open sensor lab</a></li>
+          <li><span>03</span><div><h3 data-i18n="guideThreeTitle">Run a bounded area analysis</h3><p data-i18n="guideThreeCopy">Select a Western Iberia bounding box and UTC date range, then export the coverage-aware daily series.</p></div><a href="#aoi-builder" data-i18n="guideOpenAoi">Open AOI builder</a></li>
+          <li><span>04</span><div><h3 data-i18n="guideFourTitle">Check validation before interpretation</h3><p data-i18n="guideFourCopy">Read the later-year, unseen-region, EFFIS and full-swath results together with their stated limits.</p></div><a href="#evidence" data-i18n="guideOpenEvidence">Open evidence</a></li>
+          <li><span>05</span><div><h3 data-i18n="guideFiveTitle">Audit the deployed inputs</h3><p data-i18n="guideFiveCopy">The manifest, JSON endpoint and Evidence Passport link published claims to versioned artifacts and hashes.</p></div><a href="#method" data-i18n="guideOpenMethod">Open method</a></li>
+        </ol>
+        <p class="guide-boundary" data-i18n="guideBoundary">Fyrora is a historical research prototype. It does not provide live incident alerts, burned-area estimates or safety guidance.</p>
       </section>
 
       <section class="explorer section-shell" id="explorer" aria-labelledby="explorer-title">
@@ -469,6 +489,31 @@
         </div>
       </section>
 
+      <section class="team section-shell" id="team" aria-labelledby="team-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="teamEyebrow">About the developers</p>
+            <h2 id="team-title" data-i18n="teamTitle">QORVEX team contributors</h2>
+          </div>
+          <p data-i18n="teamIntro">Fyrora combines the harmonization pipeline and web product with the Victoria 2024 FIRMS and H3 analysis.</p>
+        </div>
+        <div class="team-list">
+          <article>
+            <span>01</span>
+            <div><h3>Tara Ali Asgharzadeh</h3><strong data-i18n="taraRole">Creator and technical lead</strong><p data-i18n="taraContribution">Harmonization pipeline, validation design, evidence product and web application.</p></div>
+          </article>
+          <article>
+            <span>02</span>
+            <div><h3>Aria Fazlollah</h3><strong data-i18n="ariaRole">FIRMS and spatial analysis</strong><p data-i18n="ariaContribution">Victoria 2024 multi-sensor summaries, H3 concentration and cell-day overlap analysis.</p></div>
+          </article>
+          <article>
+            <span>03</span>
+            <div><h3>parsaparsayi</h3><strong data-i18n="parsaRole">Repository setup</strong><p data-i18n="parsaContribution">Initial QORVEX repository and project-environment integration.</p></div>
+          </article>
+        </div>
+        <p class="team-note" data-i18n="teamNote">This page credits work present in the submitted release. The official Space Apps team page remains the source for the complete event roster.</p>
+      </section>
+
       <section class="judge-brief section-shell" id="judge-brief" aria-labelledby="judge-brief-title">
         <div class="section-heading">
           <div>
@@ -497,7 +542,7 @@
 
     <footer>
       <div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>FYRORA</span></div>
-      <p data-i18n="footerCopy">Open-data prototype · Not an emergency alerting system</p>
+      <p><span data-i18n="footerCopy">Open-data prototype · Not an emergency alerting system</span><br><a href="#team" data-i18n="footerTeam">Developed by the QORVEX team</a></p>
       <a href="https://github.com/CSHub-Project/NASA-2026-QORVEX-Challenge-09" rel="noreferrer">GitHub ↗</a>
     </footer>
     <aside class="judge-tour" id="judge-tour" role="dialog" aria-modal="false" aria-labelledby="judge-tour-title" hidden>

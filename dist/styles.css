@@ -531,6 +531,46 @@ h1 em { color: inherit; font-family: inherit; font-style: normal; font-weight: i
 .judge-focus { outline-color: var(--teal); box-shadow: none; }
 
 footer { color: #65706c; }
+footer p { line-height: 1.65; }
+footer p a { color: inherit; }
+
+.guide { background: #f0f2ee; }
+.guide-flow { margin: 28px 0 0; padding: 0; border-top: 1px solid var(--line); list-style: none; }
+.guide-flow li {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: start;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+.guide-flow li > span, .team-list article > span {
+  color: #68736f;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: .8rem;
+}
+.guide-flow h3, .team-list h3 { margin: 0 0 6px; }
+.guide-flow p, .team-list p { margin: 0; color: var(--muted); }
+.guide-flow a { color: #176961; font-size: .84rem; font-weight: 750; text-decoration: none; white-space: nowrap; }
+.guide-flow a:hover, .guide-flow a:focus-visible { text-decoration: underline; }
+.guide-boundary, .team-note {
+  margin: 22px 0 0;
+  padding: 16px 18px;
+  border-left: 3px solid var(--amber);
+  background: #f7f1ea;
+  color: #5f6864;
+}
+
+.team { background: var(--paper); }
+.team-list { margin-top: 28px; border-top: 1px solid var(--line); }
+.team-list article {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+.team-list strong { display: block; margin-bottom: 8px; color: var(--teal); font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }
@@ -550,6 +590,9 @@ footer { color: #65706c; }
   .coverage-summary div:last-child, .aoi-results article:last-child { border-bottom: 0; }
   .judge-grid { grid-template-columns: 1fr; }
   .judge-grid article:nth-child(odd) { border-right: 0; }
+  .guide-flow li { grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
+  .guide-flow li > a { grid-column: 2; }
+  .team-list article { grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
 }
 
 /* Theme control and the data-driven study globe. */
@@ -748,9 +791,15 @@ footer { color: #65706c; }
 :root[data-theme="dark"] .aoi-results article { border-color: var(--line); background: #0a1814; }
 :root[data-theme="dark"] .day-detail { border-color: var(--lime); background: rgba(201, 243, 106, .055); }
 :root[data-theme="dark"] .aoi-builder,
+:root[data-theme="dark"] .guide,
+:root[data-theme="dark"] .team,
 :root[data-theme="dark"] .europe,
 :root[data-theme="dark"] .evidence,
 :root[data-theme="dark"] .judge-brief { background: #091713; }
+:root[data-theme="dark"] .guide-flow a,
+:root[data-theme="dark"] .team-list strong { color: var(--lime); }
+:root[data-theme="dark"] .guide-boundary,
+:root[data-theme="dark"] .team-note { border-color: var(--amber); background: rgba(255, 180, 74, .06); color: var(--muted); }
 :root[data-theme="dark"] .form-boundary { background: rgba(255, 180, 74, .06); }
 :root[data-theme="dark"] .aoi-map .aoi-scope { fill: #091d18; stroke: rgba(238, 248, 238, .3); }
 :root[data-theme="dark"] .aoi-map .aoi-selection { fill: rgba(201, 243, 106, .22); stroke: var(--lime); }

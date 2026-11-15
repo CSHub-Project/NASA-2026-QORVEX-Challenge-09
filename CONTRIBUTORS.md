@@ -27,11 +27,19 @@ that is included in the final project.
 - Upstream source: QORVEX repository branch `feat/firms-pipeline-migration`,
   commit `4829811c19de` (MIT license).
 
+## parsaparsayi — Repository setup
+
+- Created the initial QORVEX repository.
+- Integrated the initial project-environment pull request.
+- GitHub identity: `parsaparsayi`. Confirm the member's preferred display name
+  before the submission tag and official team-page review.
+
 ## Team contribution record
 
-The integrated contribution above is deliberately limited to the artifacts
-actually shipped. Other team work must be added by name only when it enters the
-tagged submission.
+The contributions above are limited to work verified in the repository history
+and artifacts shipped in this release. The official Space Apps roster contains
+the complete event team. Confirm the preferred display name for `parsaparsayi`
+and add the fourth member's verified role before the submission tag.
 
 ## Attribution rule
 

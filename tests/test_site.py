@@ -224,3 +224,10 @@ def test_judge_mode_and_scientific_sources_ship_in_static_build(tmp_path):
     assert "function aggregateAoi" in script
     assert "row.coverage && row.historicalMedian !== null" in script
     assert "www.earthdata.nasa.gov/data/tools/firms" in html
+    assert 'id="guide"' in html
+    assert 'id="team"' in html
+    assert "How to inspect Fyrora" in html
+    assert "QORVEX team contributors" in html
+    assert "Tara Ali Asgharzadeh" in html
+    assert "Aria Fazlollah" in html
+    assert "parsaparsayi" in html
