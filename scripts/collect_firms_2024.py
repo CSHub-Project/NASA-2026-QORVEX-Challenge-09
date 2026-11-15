@@ -62,19 +62,35 @@ OUTPUT_COLUMNS = [
     "sensor",
     "satellite_raw",
     "source_product",
+    "processing_type",
+    "source_file",
+    "source_record_id",
     "confidence_raw",
+    "confidence_type",
     "frp_mw",
     "brightness_raw",
     "brightness_11um_raw",
     "viirs_bright_ti4",
     "viirs_bright_ti5",
+    "scan",
+    "track",
     "daynight_raw",
     "source_type_raw",
     "product_version",
 ]
 
 VALID_PRODUCTS = set(DEFAULT_PRODUCTS)
+def get_processing_type(source_product: str) -> str:
+    """Extract the FIRMS processing type from a product identifier."""
 
+    processing_type = source_product.rsplit("_", 1)[-1].upper()
+
+    if processing_type not in {"SP", "NRT"}:
+        raise ValueError(
+            f"Unsupported FIRMS processing type: {source_product}"
+        )
+
+    return processing_type
 
 def validate_area(area: str) -> str:
     """Validate and normalize 'world' or a west,south,east,north bounding box."""
@@ -445,11 +461,19 @@ def main() -> None:
                 ) as source_file:
                     reader = csv.DictReader(source_file)
 
-                    for row in reader:
+                    for row_number, row in enumerate(reader, start=2):
                         total_raw += 1
 
                         try:
-                            record = harmonize_record(row, product)
+                            record = harmonize_record(
+                                row,
+                                source_product=product,
+                                processing_type=get_processing_type(product),
+                                source_file=chunk_file.relative_to(
+                                    config["data_dir"]
+                                ).as_posix(),
+                                source_record_id=row_number,
+                            )
                             record["timestamp_utc"] = (
                                 record["timestamp_utc"]
                                 .astimezone(timezone.utc)

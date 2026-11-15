@@ -222,3 +222,11 @@ data/
 # Local environment and secrets
 .env*
 !.env.example
+# QORVEX local backups and generated reports
+app/dashboard.py.backup
+reports/**/*.html
+reports/**/*.zip
+
+# Operating system files
+.DS_Store
+Thumbs.db

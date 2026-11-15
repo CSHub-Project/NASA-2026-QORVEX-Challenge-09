@@ -7,8 +7,14 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from data_access import (
+    get_dataset_metadata,
+    load_detections as load_parquet_detections,
+)
+
 DATA_DIR = Path(os.getenv("QORVEX_DATA_DIR", r"C:\Users\Asus\data"))
 ACTIVITY_DIR = DATA_DIR / "activity_calendar"
+PARQUET_DATASET_LABEL = "Victoria 2024 — Corrected Parquet"
 
 PRODUCT_LABELS = {
     "MODIS_SP": "MODIS",
@@ -129,7 +135,7 @@ def scope_frame(
     east: float,
     north: float,
 ) -> pd.DataFrame:
-    if scope == "World":
+    if scope != "Bounding box":
         return df.copy()
 
     return df.loc[
@@ -144,35 +150,93 @@ st.caption(
     "active-fire detection records."
 )
 
-datasets = discover_datasets(str(DATA_DIR))
-
-if not datasets:
-    st.error(
-        f"No harmonized CSV files found in {DATA_DIR}. "
-        "Set QORVEX_DATA_DIR or place harmonized_fires*.csv there."
-    )
-    st.stop()
-
-default = next(
-    (
-        path for path in datasets
-        if Path(path).name == "victoria_fires_2024.csv"
-    ),
-    datasets[0],
-)
-
 st.sidebar.header("Data and filters")
 
-selected_path = st.sidebar.selectbox(
-    "Harmonized dataset",
-    datasets,
-    index=datasets.index(default),
-    format_func=lambda path: Path(path).name,
+data_source = st.sidebar.radio(
+    "Data source",
+    [
+        PARQUET_DATASET_LABEL,
+        "Legacy CSV datasets",
+    ],
 )
+
+selected_path = None
+metadata = None
+
+try:
+    if data_source == PARQUET_DATASET_LABEL:
+        detections = load_parquet_detections()
+        metadata = get_dataset_metadata()
+
+        scope_options = [
+            "Victoria (dataset extent)",
+            "Bounding box",
+        ]
+
+        st.sidebar.success("Corrected Parquet dataset loaded")
+        st.sidebar.caption(
+            "Victoria, Australia · 2024 · "
+            f"{metadata['detection_records']:,} detection records"
+        )
+
+    else:
+        datasets = discover_datasets(str(DATA_DIR))
+
+        if not datasets:
+            st.error(
+                f"No harmonized CSV files found in {DATA_DIR}. "
+                "Set QORVEX_DATA_DIR or place harmonized_fires*.csv there."
+            )
+            st.stop()
+
+        default = next(
+            (
+                path for path in datasets
+                if Path(path).name == "victoria_fires_2024.csv"
+            ),
+            datasets[0],
+        )
+
+        selected_path = st.sidebar.selectbox(
+            "Harmonized dataset",
+            datasets,
+            index=datasets.index(default),
+            format_func=lambda path: Path(path).name,
+        )
+
+        detections = load_detections(selected_path)
+        scope_options = ["World", "Bounding box"]
+
+except (OSError, ValueError, KeyError, RuntimeError) as error:
+    st.error(f"Could not load the selected dataset: {error}")
+    st.stop()
+
+# Both data sources need the same UTC date field for dashboard filters.
+detections["latitude"] = pd.to_numeric(
+    detections["latitude"], errors="coerce"
+)
+detections["longitude"] = pd.to_numeric(
+    detections["longitude"], errors="coerce"
+)
+detections["timestamp_utc"] = pd.to_datetime(
+    detections["timestamp_utc"], errors="coerce", utc=True
+)
+
+valid = (
+    detections["latitude"].between(-90, 90)
+    & detections["longitude"].between(-180, 180)
+    & detections["timestamp_utc"].notna()
+)
+detections = detections.loc[valid].copy()
+detections["date"] = detections["timestamp_utc"].dt.floor("D")
+
+if detections.empty:
+    st.warning("The selected dataset contains no valid detections.")
+    st.stop()
 
 scope = st.sidebar.radio(
     "Geographic scope",
-    ["World", "Bounding box"],
+    scope_options,
     horizontal=True,
 )
 
@@ -181,9 +245,8 @@ if scope == "Bounding box":
         "Bounding-box coordinates",
         expanded=True,
     ):
-        st.caption(
-            "West, south, east, north; decimal degrees."
-        )
+        st.caption("West, south, east, north; decimal degrees.")
+
         west = st.number_input(
             "West longitude",
             min_value=-180.0,
@@ -214,24 +277,17 @@ if scope == "Bounding box":
         )
 
     if west >= east or south >= north:
-        st.sidebar.error(
-            "Require west < east and south < north."
-        )
+        st.sidebar.error("Require west < east and south < north.")
         st.stop()
 else:
     west, south, east, north = (
         -180.0, -90.0, 180.0, 90.0
     )
-    st.sidebar.caption(
-        "World shows all records in this file; "
-        "it does not fetch additional global data."
-    )
-
-try:
-    detections = load_detections(selected_path)
-except (OSError, ValueError, KeyError) as error:
-    st.error(f"Could not load dataset: {error}")
-    st.stop()
+    if data_source == "Legacy CSV datasets":
+        st.sidebar.caption(
+            "World shows all records in the selected file; "
+            "it does not fetch additional global data."
+        )
 
 if detections.empty:
     st.warning(
@@ -323,8 +379,14 @@ col4.metric(
     f"{int(peak['detections']):,}",
 )
 
+dataset_label = (
+    PARQUET_DATASET_LABEL
+    if selected_path is None
+    else Path(selected_path).name
+)
+
 st.caption(
-    f"{Path(selected_path).name} · {scope} · "
+    f"{dataset_label} · {scope} · "
     f"{start_date:%d %b %Y}–{end_date:%d %b %Y}. "
     "Detection records are not unique fires or burned area."
 )
@@ -396,7 +458,10 @@ st.plotly_chart(monthly_fig, use_container_width=True)
 
 # Legacy anomaly reports are only associated with the original
 # Victoria 2024 dataset. They are not recalculated for other data.
-if Path(selected_path).name == "victoria_fires_2024.csv":
+if (
+    selected_path is not None
+    and Path(selected_path).name == "victoria_fires_2024.csv"
+):
     anomalies, episodes = load_legacy_reports(str(ACTIVITY_DIR))
 
     if anomalies is not None and {
@@ -498,7 +563,11 @@ with st.expander("Inspect filtered detections"):
     )
 
 st.caption(
-    "World scope only filters the selected file; it does not "
-    "download data. Anomaly episodes are statistical activity "
-    "periods, not confirmed individual wildfires."
+    "The corrected Parquet dataset represents filtered FIRMS "
+    "detection records for Victoria, Australia, during 2024. "
+    "A detection record is not necessarily a unique fire. "
+    "The absence of a record does not establish zero fire activity "
+    "or valid satellite observation coverage. "
+    "Anomaly episodes, where shown for the legacy dataset, are "
+    "statistical activity periods, not confirmed individual wildfires."
 )

@@ -1,0 +1,4 @@
+product_a,product_b,product_a_cell_days,product_b_cell_days,shared_cell_days,product_a_only_cell_days,product_b_only_cell_days,union_cell_days,jaccard_similarity
+MODIS_SP,VIIRS_NOAA20_SP,7445,14948,3135,4310,11813,19258,0.16278949008204383
+MODIS_SP,VIIRS_SNPP_SP,7445,14872,3149,4296,11723,19168,0.16428422370617696
+VIIRS_NOAA20_SP,VIIRS_SNPP_SP,14948,14872,7396,7552,7476,22424,0.32982518729932214

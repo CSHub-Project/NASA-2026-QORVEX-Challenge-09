@@ -68,6 +68,23 @@ def test_harmonize_viirs_record():
 
 
 @pytest.mark.parametrize(
+    ("acq_time", "expected"),
+    [
+        (430.0, datetime(2024, 1, 3, 4, 30, tzinfo=timezone.utc)),
+        (30.0, datetime(2024, 1, 3, 0, 30, tzinfo=timezone.utc)),
+        ("0030", datetime(2024, 1, 3, 0, 30, tzinfo=timezone.utc)),
+    ],
+)
+def test_numeric_and_zero_padded_acquisition_times(acq_time, expected):
+    record = MODIS_RECORD.copy()
+    record["acq_time"] = acq_time
+
+    result = harmonize_record(record, "MODIS_SP")
+
+    assert result["timestamp_utc"] == expected
+
+
+@pytest.mark.parametrize(
     ("field", "value"),
     [
         ("latitude", "-120"),
@@ -98,12 +115,18 @@ def test_output_schema_is_stable():
         "sensor",
         "satellite_raw",
         "source_product",
+        "processing_type",
+        "source_file",
+        "source_record_id",
         "confidence_raw",
+        "confidence_type",
         "frp_mw",
         "brightness_raw",
         "brightness_11um_raw",
         "viirs_bright_ti4",
         "viirs_bright_ti5",
+        "scan",
+        "track",
         "daynight_raw",
         "source_type_raw",
         "product_version",
@@ -193,3 +216,45 @@ def test_unsupported_instrument_is_rejected():
 
     with pytest.raises(ValueError, match="Unsupported instrument"):
         harmonize_record(record, "MODIS_SP")
+
+
+def test_confidence_zero_is_preserved():
+    record = MODIS_RECORD.copy()
+    record["confidence"] = "0"
+
+    result = harmonize_record(record, "MODIS_SP")
+
+    assert result["confidence_raw"] == "0"
+    assert result["confidence_type"] == "numeric_0_100"
+
+
+def test_viirs_confidence_is_identified_as_categorical():
+    result = harmonize_record(VIIRS_RECORD, "VIIRS_SNPP_SP")
+
+    assert result["confidence_raw"] == "n"
+    assert result["confidence_type"] == "categorical"
+
+
+def test_scan_and_track_are_preserved():
+    record = MODIS_RECORD.copy()
+    record["scan"] = "1.2"
+    record["track"] = "1.1"
+
+    result = harmonize_record(record, "MODIS_SP")
+
+    assert result["scan"] == 1.2
+    assert result["track"] == 1.1
+
+
+def test_provenance_fields_are_preserved():
+    result = harmonize_record(
+        MODIS_RECORD,
+        "MODIS_SP",
+        processing_type="SP",
+        source_file="MODIS_2024.csv",
+        source_record_id=125,
+    )
+
+    assert result["processing_type"] == "SP"
+    assert result["source_file"] == "MODIS_2024.csv"
+    assert result["source_record_id"] == 125

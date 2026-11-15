@@ -1,0 +1,3 @@
+top_n_days,combined_detections,combined_annual_detections,combined_share_pct,modis_sp_detections,modis_sp_annual_share_pct,viirs_noaa20_sp_detections,viirs_noaa20_sp_annual_share_pct,viirs_snpp_sp_detections,viirs_snpp_sp_annual_share_pct
+5,14453,91265,15.836300882046785,1974,18.654318654318654,6195,15.757745332451545,6284,15.19011820445261
+10,24346,91265,26.67616282254972,3263,30.83538083538084,10394,26.438418883858166,10689,25.838188015180446

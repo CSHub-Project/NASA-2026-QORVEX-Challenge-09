@@ -1,0 +1,4 @@
+product,cell_days_with_detections,total_detection_records
+MODIS_SP,7445,10582
+VIIRS_NOAA20_SP,14948,39314
+VIIRS_SNPP_SP,14872,41369

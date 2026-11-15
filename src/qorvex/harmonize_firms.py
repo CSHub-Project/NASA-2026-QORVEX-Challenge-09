@@ -8,7 +8,10 @@ def parse_acquisition_timestamp(acq_date, acq_time):
 
     date_part = datetime.strptime(acq_date, "%Y-%m-%d").date()
 
-    time_text = str(acq_time).zfill(4)
+    if isinstance(acq_time, float) and acq_time.is_integer():
+        time_text = str(int(acq_time)).zfill(4)
+    else:
+        time_text = str(acq_time).strip().zfill(4)
 
     if len(time_text) != 4 or not time_text.isdigit():
         raise ValueError(f"Invalid FIRMS acquisition time: {acq_time}")
@@ -54,10 +57,21 @@ def parse_optional_float(value, field_name):
     return parse_required_float(value, field_name)
 
 
-def harmonize_record(row, source_product):
+def harmonize_record(
+    row,
+    source_product,
+    processing_type=None,
+    source_file=None,
+    source_record_id=None,
+):
     """Validate and harmonize one raw MODIS or VIIRS FIRMS record."""
 
-    instrument = row["instrument"].strip().upper()
+    raw_instrument = row.get("instrument")
+
+    if not isinstance(raw_instrument, str) or not raw_instrument.strip():
+        raise ValueError("Missing or invalid instrument.")
+
+    instrument = raw_instrument.strip().upper()
 
     if instrument not in {"MODIS", "VIIRS"}:
         raise ValueError(f"Unsupported instrument: {instrument}")
@@ -65,6 +79,8 @@ def harmonize_record(row, source_product):
     latitude = parse_required_float(row.get("latitude"), "latitude")
     longitude = parse_required_float(row.get("longitude"), "longitude")
     frp = parse_optional_float(row.get("frp"), "frp")
+    scan = parse_optional_float(row.get("scan"), "scan")
+    track = parse_optional_float(row.get("track"), "track")
 
     if not -90 <= latitude <= 90:
         raise ValueError(f"Latitude out of range: {latitude}")
@@ -88,6 +104,7 @@ def harmonize_record(row, source_product):
         )
         brightness_i4 = None
         brightness_i5 = None
+        confidence_type = "numeric_0_100"
 
     else:
         brightness = None
@@ -98,20 +115,31 @@ def harmonize_record(row, source_product):
         brightness_i5 = parse_optional_float(
             row.get("bright_ti5"), "bright_ti5"
         )
+        confidence_type = "categorical"
+
+    confidence = row.get("confidence")
+    if confidence is not None and str(confidence).strip() == "":
+        confidence = None
 
     return {
         "timestamp_utc": timestamp,
         "latitude": latitude,
         "longitude": longitude,
         "sensor": instrument,
-        "satellite_raw": row["satellite"],
+        "satellite_raw": row.get("satellite"),
         "source_product": source_product,
-        "confidence_raw": row.get("confidence") or None,
+        "processing_type": processing_type,
+        "source_file": source_file,
+        "source_record_id": source_record_id,
+        "confidence_raw": confidence,
+        "confidence_type": confidence_type,
         "frp_mw": frp,
         "brightness_raw": brightness,
         "brightness_11um_raw": brightness_11um,
         "viirs_bright_ti4": brightness_i4,
         "viirs_bright_ti5": brightness_i5,
+        "scan": scan,
+        "track": track,
         "daynight_raw": row.get("daynight") or None,
         "source_type_raw": row.get("type") or None,
         "product_version": row.get("version") or None,
