@@ -1,6 +1,6 @@
 # Fyrora project submission draft
 
-Status: technically ready; team roster, video URL and Local Lead eligibility confirmation remain open.
+Status: technically ready; Team Lead approval and Local Lead eligibility confirmation remain open.
 
 ## Title
 
@@ -10,14 +10,14 @@ Fyrora — One Fire Record Across Two Satellite Generations
 
 QORVEX
 
-Verified release contributors:
+Official team roster:
 
-- Tara Ali Asgharzadeh — creator and technical lead
-- Aria Fazlollah — FIRMS and spatial-analysis contribution
-- `parsaparsayi` — initial repository and project-environment setup; confirm preferred display name
-- Fourth official member — confirm name and release contribution before submission
+- Aria Fazlollah — Team Owner / Team Lead
+- Melika Ostad Jafari — Team Member
+- Tara Ali Asgharzadeh — Team Member
+- Mobina Amrollahi — Team Member
 
-The official Space Apps team page must provide the final roster.
+Verified technical contributions are recorded in `CONTRIBUTORS.md`.
 
 ## Short summary
 
@@ -72,12 +72,10 @@ Use the disclosure required by the official form and the event rules. The curren
 - Web application: http://202.133.91.125:8088/
 - Source: https://github.com/CSHub-Project/NASA-2026-QORVEX-Challenge-09
 - Challenge: https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/
-- Video: pending
+- Seven-slide demonstration: http://202.133.91.125:8088/demo/fyrora-space-apps-demo.pdf
 
 ## Final submission checks
 
-- Confirm the complete official team roster and preferred display names.
 - Obtain written eligibility guidance from the Van Local Lead.
-- Add and verify the public video URL.
-- Verify the web application, source, video and PDF from a signed-out mobile connection.
+- Verify the web application, source and seven-slide PDF from a signed-out mobile connection.
 - Merge the approved release branch, create the submission tag, and submit the Project tab.

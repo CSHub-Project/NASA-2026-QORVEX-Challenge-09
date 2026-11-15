@@ -230,4 +230,5 @@ def test_judge_mode_and_scientific_sources_ship_in_static_build(tmp_path):
     assert "QORVEX team contributors" in html
     assert "Tara Ali Asgharzadeh" in html
     assert "Aria Fazlollah" in html
-    assert "parsaparsayi" in html
+    assert "Melika Ostad Jafari" in html
+    assert "Mobina Amrollahi" in html

@@ -4,6 +4,16 @@ This file records work that is actually present in this repository. It should be
 updated before the submission tag if another team member contributes material
 that is included in the final project.
 
+## Official QORVEX event roster
+
+- Aria Fazlollah — Team Owner / Team Lead
+- Melika Ostad Jafari — Team Member
+- Tara Ali Asgharzadeh — Team Member
+- Mobina Amrollahi — Team Member
+
+This roster matches the official NASA Space Apps team page. The sections below
+record contributions verified in the submitted repository and artifacts.
+
 ## Tara Ali Asgharzadeh — Creator and Technical Lead
 
 - Defined the MODIS–VIIRS harmonization problem and the evidence boundaries.
@@ -37,9 +47,9 @@ that is included in the final project.
 ## Team contribution record
 
 The contributions above are limited to work verified in the repository history
-and artifacts shipped in this release. The official Space Apps roster contains
-the complete event team. Confirm the preferred display name for `parsaparsayi`
-and add the fourth member's verified role before the submission tag.
+and artifacts shipped in this release. Melika Ostad Jafari and Mobina Amrollahi
+are official QORVEX team members; add detailed release responsibilities for them
+only after the Team Lead confirms the work included in the submitted version.
 
 ## Attribution rule
 

@@ -49,10 +49,10 @@
 
 ## Remaining event priorities
 
-1. Confirm the fourth official team member's name and shipped contribution, and
-   confirm the preferred display name for GitHub user `parsaparsayi`.
+1. Confirm detailed release responsibilities for Melika Ostad Jafari and Mobina
+   Amrollahi with the Team Lead before expanding their contributor entries.
 2. Obtain written eligibility guidance from the Van Local Lead.
-3. Record and verify the public demonstration video.
+3. Use the verified seven-slide PDF as the public project demonstration.
 4. Review the live Project tab and copy each verified field into the official form.
 5. Before final judging, make only the approved submission repository and demo
    publicly accessible and verify every link in a signed-out browser.
